@@ -1,6 +1,7 @@
 import type {IDownloader} from '../../core/interfaces/IDownloader.ts';
-import puppeteer, {ProtocolError, TimeoutError} from 'puppeteer';
+import puppeteer, {Page, ProtocolError, TimeoutError} from 'puppeteer';
 import {InvalidUrlException} from '../../shared/errors/InvalidUrlException.ts';
+import {PostTypeEnum} from '../../shared/enums/postTypeEnum.ts';
 
 export class PuppeteerDownloader implements IDownloader {
   private readonly timeout: number = 30000
@@ -15,6 +16,9 @@ export class PuppeteerDownloader implements IDownloader {
 
     try {
       await page.goto(url);
+
+      const postType = await this.getPostType(page);
+      console.log("Type of post is", postType);
 
       const videoResponse = await page.waitForResponse(response =>
         response.url().includes('.m3u8') && response.status() === 200
@@ -33,5 +37,22 @@ export class PuppeteerDownloader implements IDownloader {
     finally {
       await browser.close();
     }
+  }
+
+  async getPostType(page: Page): Promise<PostTypeEnum> {
+    const html = await page.waitForSelector('[data-testid="videoComponent"]', {timeout: 10000})
+    const type = await html?.evaluate(() => {
+      enum PostTypeEnum {
+        Unknown = 'unknown',
+        Video = 'video',
+        Gif = 'gif',
+      }
+
+      return document.body.querySelector('video')?.src
+        ? PostTypeEnum.Gif
+        : PostTypeEnum.Video
+    })
+
+    return type ?? PostTypeEnum.Unknown
   }
 }
