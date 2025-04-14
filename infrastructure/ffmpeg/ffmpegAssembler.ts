@@ -1,18 +1,11 @@
-import type {IAssembler} from '../../core/interfaces/IAssembler.ts';
 import { $ } from 'bun';
+import type {IAssembler} from '../../core/interfaces/IAssembler.ts';
+import {basePath} from '../../shared/helpers/pathHelper.ts';
 
 export class FfmpegAssembler implements IAssembler {
   constructor() {}
 
-  async AssembleVideoByHLCUrl(url: string, outputPath: string, filename: string): Promise<void> {
-    try {
-      const proc = Bun.spawn(['ffmpeg', '-i', url, '-c', 'copy', `${filename}.mp4`]);
-      await proc.exited
-    }
-    catch (error: any) {
-      console.log(`Failed with code ${error.exitCode}`);
-      console.log(error.stdout.toString());
-      console.log(error.stderr.toString());
-    }
+  async AssembleVideoByHLCUrl(url: string, outputPath: string = basePath, filename: string = crypto.randomUUID()): Promise<void> {
+      await $`ffmpeg -i ${url} -c copy ${outputPath}/downloads/${filename}.mp4`
   }
 }

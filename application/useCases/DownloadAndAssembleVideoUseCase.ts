@@ -11,7 +11,7 @@ export class DownloadAndAssembleVideoUseCase {
     console.log('Find the HLS url for video...')
     const videoUrl = await this.downloader.getVideoHLCUrl(url)
     console.log(`Start assemble video: ${videoUrl}`);
-    await this.assembler.AssembleVideoByHLCUrl(videoUrl, '../downloads/', 'testVideo')
+    await this.assembler.AssembleVideoByHLCUrl(videoUrl)
     console.log('Done!')
   }
 }

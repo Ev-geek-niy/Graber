@@ -17,9 +17,7 @@ for await (const line of console) {
     process.stdout.write(prompt);
   }
   catch (err) {
-    if (err instanceof Error) {
-      console.error(err);
-    }
+    console.error(err);
     process.stdout.write(prompt);
   }
 }
