@@ -2,13 +2,18 @@ import type {IDownloader} from '../../core/interfaces/IDownloader.ts';
 import puppeteer, {Page, ProtocolError, TimeoutError} from 'puppeteer';
 import {InvalidUrlException} from '../../shared/errors/InvalidUrlException.ts';
 import {PostTypeEnum} from '../../shared/enums/postTypeEnum.ts';
+import Xregex from '../../shared/regex/Xregex.ts';
 
 export class PuppeteerDownloader implements IDownloader {
   private readonly timeout: number = 30000
   constructor() {}
 
+  getGifUrl(url: string): Promise<string> {
+        throw new Error('Method not implemented.');
+    }
+
   async getVideoHLCUrl(url: string): Promise<string> {
-    if (!url.includes('x.com') && !url.includes('status'))
+    if (!Xregex.XUrlRegex.test(url) && !url.includes('status'))
       throw new InvalidUrlException('The specified URL is not a link to x.com');
 
     const browser = await puppeteer.launch({timeout: this.timeout});

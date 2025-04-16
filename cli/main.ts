@@ -1,8 +1,8 @@
-import {DownloadAndAssembleVideoUseCase} from '../application/useCases/DownloadAndAssembleVideoUseCase.ts';
+import {getVideoBufferFromUrlUseCase} from '../application/useCases/getVideoBufferFromUrlUseCase.ts';
 import {PuppeteerDownloader} from '../infrastructure/puppeteer/puppeteerDownloader.ts';
 import {FfmpegAssembler} from '../infrastructure/ffmpeg/ffmpegAssembler.ts';
 
-const downloadAndAssembleUseCase = new DownloadAndAssembleVideoUseCase(
+const downloadAndAssembleUseCase = new getVideoBufferFromUrlUseCase(
   new PuppeteerDownloader(),
   new FfmpegAssembler()
 );

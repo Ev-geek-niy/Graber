@@ -1,3 +1,3 @@
 export interface IAssembler {
-  AssembleVideoByHLCUrl(url: string, outputPath?: string, filename?: string): Promise<void>;
+  getVideoBuffer(url: string): Promise<Uint8Array[]>;
 }
