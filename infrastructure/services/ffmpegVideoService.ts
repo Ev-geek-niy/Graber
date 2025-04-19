@@ -10,21 +10,20 @@ export class FfmpegVideoService implements IVideoService {
   constructor() {
   }
 
-  async getVideoMetadata(url: string): Promise<VideoMetadata> {
-    log('Получение мета-данных из HLS-потока')
+  async getVideoMetadata(filePath: string): Promise<VideoMetadata> {
+    log(`Получение мета-данных из HLS-потока: ${filePath}`)
     try {
       const {stdout} = Bun.spawn([
         'ffprobe',
         '-show_streams',
         '-show_format',
         '-print_format', 'json',
-        url
+        filePath
       ]);
 
       const output_json_str = await new Response(stdout).text();
       const json = JSON.parse(output_json_str) as FfmpegHlsJson;
       log('Попытка найти данные о видео-потоке')
-      log(output_json_str)
       const videoMetaData = json.streams.find(stream => {
         log(`Текущий поток: ${stream.index}, ${stream.codec_name}`)
         return stream.codec_type === TwitterCodecTypesEnum.Video
@@ -42,6 +41,10 @@ export class FfmpegVideoService implements IVideoService {
         logError(`Ошибка при получении мета-данных из HLS-потока: ${err.message}`,)
         throw err;
       }
+
+      const unknownError = new Error('Неизвестная ошибка при получении мета-данных');
+      logError(`Ошибка при получении мета-данных из HLS-потока: ${unknownError.message}`);
+      throw unknownError;
     }
   }
 

@@ -3,15 +3,8 @@ import Xregex from '../shared/regex/Xregex.ts';
 import {loadEnv} from './env.ts';
 import {PuppeteerWebTracerService} from '../infrastructure/services/puppeteerWebTracerService.ts';
 import {FfmpegVideoService} from '../infrastructure/services/ffmpegVideoService.ts';
-import {GetVideoFromHls} from '../application/getVideoFromHls.useCase.ts';
-import {log, logError} from '../shared/logger.ts';
+import {log} from '../shared/logger.ts';
 import {CreateTempVideoFileFromHlsUseCase} from '../application/createTempVideoFileFromHls.useCase.ts';
-
-
-const mediaHLSSender = new GetVideoFromHls(
-  new PuppeteerWebTracerService(),
-  new FfmpegVideoService()
-)
 
 const videoCreatorInFolder = new CreateTempVideoFileFromHlsUseCase(
   new PuppeteerWebTracerService(),
@@ -44,7 +37,6 @@ bot.on('message:entities:url', async (ctx) => {
       width: metadata.width,
       duration: Math.round(+metadata.duration),
       supports_streaming: true,
-      caption: 'Пожалуйста',
     }
   )
   const file = Bun.file(filePath);
