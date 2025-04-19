@@ -1,10 +1,9 @@
-import type {IDownloader} from '../../core/interfaces/IDownloader.ts';
 import puppeteer, {Page, ProtocolError, TimeoutError} from 'puppeteer';
 import {InvalidUrlException} from '../../shared/errors/InvalidUrlException.ts';
 import {PostTypeEnum} from '../../shared/enums/postTypeEnum.ts';
 import Xregex from '../../shared/regex/Xregex.ts';
 
-export class PuppeteerDownloader implements IDownloader {
+export class TwitterPuppeteer implements ISiteScrapper {
   private readonly timeout: number = 30000
   constructor() {}
 
@@ -12,7 +11,7 @@ export class PuppeteerDownloader implements IDownloader {
         throw new Error('Method not implemented.');
     }
 
-  async getVideoHLCUrl(url: string): Promise<string> {
+  async getVideoHlsUrl(url: string): Promise<string> {
     if (!Xregex.XUrlRegex.test(url) && !url.includes('status'))
       throw new InvalidUrlException('The specified URL is not a link to x.com');
 
@@ -22,7 +21,7 @@ export class PuppeteerDownloader implements IDownloader {
     try {
       await page.goto(url);
 
-      const postType = await this.getPostType(page);
+      const postType = await this.getMediaType(page);
       console.log("Type of post is", postType);
 
       const videoResponse = await page.waitForResponse(response =>
@@ -44,7 +43,7 @@ export class PuppeteerDownloader implements IDownloader {
     }
   }
 
-  async getPostType(page: Page): Promise<PostTypeEnum> {
+  async getMediaType(page: Page): Promise<PostTypeEnum> {
     const html = await page.waitForSelector('[data-testid="videoComponent"]', {timeout: 10000})
     const type = await html?.evaluate(() => {
       enum PostTypeEnum {
