@@ -37,14 +37,9 @@ export class FfmpegVideoService implements IVideoService {
       }
     }
     catch(err) {
-      if (err instanceof Error) {
-        logError(`Ошибка при получении мета-данных из HLS-потока: ${err.message}`,)
-        throw err;
-      }
-
-      const unknownError = new Error('Неизвестная ошибка при получении мета-данных');
-      logError(`Ошибка при получении мета-данных из HLS-потока: ${unknownError.message}`);
-      throw unknownError;
+      const error = err instanceof Error ? err : new Error('Неизвестная ошибка при получении мета-данных');
+      logError(`Ошибка при получении мета-данных из HLS-потока: ${error.message}`);
+      throw error;
     }
   }
 
