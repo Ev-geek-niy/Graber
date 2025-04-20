@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type {IVideoService} from '../core/interfaces/IVideoService.ts';
 import type {IWebTracerService} from '../core/interfaces/IWebTracerService.ts';
 import puppeteer from 'puppeteer';
@@ -9,16 +10,18 @@ export class CreateTempVideoFileFromHlsUseCase {
   ) {}
 
   async execute(url: string) {
-    const tempFilePath = `${crypto.randomUUID()}.mp4`;
+
+    const filename = `${crypto.randomUUID()}.mp4`;
+    const tempFolderPath = `./temp/`;
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
     const hlsMapUrl = await this.webTracerService.getHlsMapUrl(url, page)
-    await this.videoService.saveVideoToFolder(hlsMapUrl, tempFilePath);
-    const metadata = await this.videoService.getVideoMetadata(tempFilePath);
+    const outputPath = await this.videoService.saveVideoToFolder(hlsMapUrl, filename, tempFolderPath);
+    const metadata = await this.videoService.getVideoMetadata(outputPath);
 
     return {
-      filePath: tempFilePath,
+      filePath: path.join(tempFolderPath, filename),
       metadata,
     }
   }

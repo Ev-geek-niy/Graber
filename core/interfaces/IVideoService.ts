@@ -13,14 +13,15 @@ export interface IVideoService {
 
   /**
    * Сохранить файл в указанный путь.
-   * @param filePath Путь до файла, Url на .mp4 или .m8u3 файлы.
-   * @param outputPath Путь к выходной папке формата './{folders}/{file}.mp4'.
+   * @param filePath Путь до папки, Url на .mp4 или .m8u3 файлы.
+   * @param filename Имя файла
+   * @param folderPath Путь к выходной папке формата './{folders}/'.
    */
-  saveVideoToFolder(filePath: string, outputPath: string): Promise<void>
+  saveVideoToFolder(filePath: string, filename: string, folderPath: string): Promise<string>
 
   /**
-   * Получение мета-данных из HLS-потока.
-   * @param filePath Путь до .m8u3 файла.
+   * Получение мета-данных из HLS-потока или видео-файла.
+   * @param filePath Путь до файла
    */
   getVideoMetadata(filePath: string): Promise<VideoMetadata>
 
@@ -28,5 +29,5 @@ export interface IVideoService {
    * Подготовить объект видео-файла из HLS-потока.
    * @param filePath Путь до .m8u3 файла.
    */
-  prepareVideo(filePath: string): Promise<Video>
+  prepareHLSVideo(filePath: string): Promise<Video>
 }

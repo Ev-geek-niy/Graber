@@ -21,6 +21,8 @@ bot.command('start', async (ctx) => {
 bot.on('message:entities:url', async (ctx) => {
   const url = ctx.message.text;
 
+  log(`Проверка URL: ${url}`)
+
   if (!Xregex.XUrlRegex.test(url)) {
     await bot.api.sendMessage(
       ctx.message.chat.id,
@@ -29,6 +31,9 @@ bot.on('message:entities:url', async (ctx) => {
   }
 
   const {filePath, metadata} = await videoCreatorInFolder.execute(url);
+
+  log(`Отправка видео-файла: ${filePath}`)
+
   await bot.api.sendVideo(
     ctx.message.chat.id,
     new InputFile(filePath),
@@ -39,8 +44,11 @@ bot.on('message:entities:url', async (ctx) => {
       supports_streaming: true,
     }
   )
+
+  log(`Удаление файла: ${filePath}`)
   const file = Bun.file(filePath);
   await file.delete();
+  log('Готово!')
 })
 
 log('The bot is start working')
