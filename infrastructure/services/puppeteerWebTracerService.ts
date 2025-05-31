@@ -1,11 +1,11 @@
 import type {IWebTracerService} from '../../core/interfaces/IWebTracerService.ts';
-import type {Page} from 'puppeteer';
+import {type Page } from 'puppeteer';
 import {log, logError} from '../../shared/logger.ts';
 
 export class PuppeteerWebTracerService implements IWebTracerService {
   async getHlsMapUrl(url: string, page: Page, timeout: number = 60000): Promise<string> {
     try {
-      await page.goto(url);
+      await page.goto(url, {waitUntil: 'domcontentloaded'});
 
       log(`Попытка получения HLS-потока со страницы: ${page.url()}`)
 

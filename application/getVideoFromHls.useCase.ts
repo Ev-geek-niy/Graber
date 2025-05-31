@@ -15,6 +15,6 @@ export class GetVideoFromHls {
     const page = await browser.newPage();
 
     const hlsUrl = await this.webTracerService.getHlsMapUrl(url, page);
-    return await this.videoService.prepareVideo(hlsUrl)
+    return await this.videoService.prepareHLSVideo(hlsUrl)
   }
 }

@@ -84,6 +84,8 @@ export class FfmpegVideoService implements IVideoService {
   }
 
   async getVideoBuffer(url: string): Promise<Uint8Array[]> {
+    log('Выполнение команды на получение видео из потока...')
+
     const {stdout} = Bun.spawn([
       'ffmpeg',
       '-loglevel', 'error',
@@ -98,9 +100,12 @@ export class FfmpegVideoService implements IVideoService {
       '-f', 'mp4',
       'pipe:1'
     ], {
+
       stdout: 'pipe',
       stderr: 'inherit'
     })
+
+    log('Готово!')
 
     return await FileStreamHelper.readAllStream(stdout);
   }
