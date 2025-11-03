@@ -2,11 +2,13 @@ import path from 'node:path';
 import type {IVideoService} from '../core/interfaces/IVideoService.ts';
 import type {IWebTracerService} from '../core/interfaces/IWebTracerService.ts';
 import puppeteer from 'puppeteer';
+import type {Proxy} from '../core/models/Proxy.ts';
 
 export class CreateTempVideoFileFromHlsUseCase {
   constructor(
     private readonly webTracerService: IWebTracerService,
     private readonly videoService: IVideoService,
+    private readonly proxy: Proxy
   ) {}
 
   async execute(url: string) {
@@ -15,18 +17,15 @@ export class CreateTempVideoFileFromHlsUseCase {
     const browser = await puppeteer.launch({
       headless: false,
       args: [
-        process.env.PROXY_ADDRESS
-          ? `--proxy-server=http://${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`
+        this.proxy.isActive()
+          ? `--proxy-server=${this.proxy.getConnectionString(true)}`
           : ''
       ]
     });
     const page = await browser.newPage();
 
-    if (process.env.PROXY_ADDRESS && process.env.PROXY_USERNAME && process.env.PROXY_PASSWORD){
-      await page.authenticate({
-        username: process.env.PROXY_USERNAME!,
-        password: process.env.PROXY_PASSWORD!,
-      })
+    if (this.proxy.isActive() && this.proxy.isUseCredentials()){
+      await page.authenticate(this.proxy.getAuthenticateData())
     }
 
     const hlsMapUrl = await this.webTracerService.getHlsMapUrl(url, page)

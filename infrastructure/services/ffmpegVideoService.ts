@@ -7,9 +7,12 @@ import type {FfmpegHlsJson} from '../../core/types/FfmpegHlsJson.ts';
 import {TwitterCodecTypesEnum} from '../../core/enums/twitterCodecTypesEnum.ts';
 import {mkdir} from 'node:fs'
 import path from 'node:path';
+import type {Proxy} from '../../core/models/Proxy.ts';
 
 export class FfmpegVideoService implements IVideoService {
-  constructor() {
+  private readonly proxy: Proxy
+  constructor(proxy: Proxy) {
+    this.proxy = proxy;
   }
 
   async getVideoMetadata(filePath: string): Promise<VideoMetadata> {
@@ -18,13 +21,18 @@ export class FfmpegVideoService implements IVideoService {
     try {
       const {stdout} = Bun.spawn([
         'ffprobe',
-        '-http_proxy', `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
         '-loglevel', 'error',
         '-show_streams',
         '-show_format',
         '-print_format', 'json',
         filePath
-      ]);
+      ],{
+        env: {
+          'http_proxy': this.proxy?.isHttp()
+            ? this.proxy?.getConnectionString()
+            : ''
+        }
+      });
 
       const output_json_str = await new Response(stdout).text();
       const json = JSON.parse(output_json_str) as FfmpegHlsJson;
@@ -77,8 +85,9 @@ export class FfmpegVideoService implements IVideoService {
     ], {
       stderr: 'inherit',
       env: {
-        'http_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
-        'https_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
+        'http_proxy': this.proxy?.isHttp()
+          ? this.proxy?.getConnectionString()
+          : ''
       }
     })
 
@@ -108,8 +117,9 @@ export class FfmpegVideoService implements IVideoService {
       stdout: 'pipe',
       stderr: 'inherit',
       env: {
-        'http_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
-        'https_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
+        'http_proxy': this.proxy?.isHttp()
+          ? this.proxy?.getConnectionString()
+          : ''
       }
     })
 

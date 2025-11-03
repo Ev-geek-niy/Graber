@@ -5,13 +5,23 @@ import {PuppeteerWebTracerService} from '../infrastructure/services/puppeteerWeb
 import {FfmpegVideoService} from '../infrastructure/services/ffmpegVideoService.ts';
 import {log} from '../shared/logger.ts';
 import {CreateTempVideoFileFromHlsUseCase} from '../application/createTempVideoFileFromHls.useCase.ts';
+import {Proxy} from '../core/models/Proxy.ts';
+
+loadEnv()
+const proxy = new Proxy({
+  address: process.env.PROXY_ADDRESS!,
+  port: process.env.PROXY_PORT!,
+  username: process.env.PROXY_USERNAME,
+  password: process.env.PROXY_PASSWORD,
+})
+
 
 const videoCreatorInFolder = new CreateTempVideoFileFromHlsUseCase(
   new PuppeteerWebTracerService(),
-  new FfmpegVideoService()
+  new FfmpegVideoService(proxy),
+  proxy
 )
 
-loadEnv()
 const bot = new Bot(process.env.BOT_TOKEN!);
 
 bot.command('start', async (ctx) => {
