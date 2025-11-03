@@ -8,18 +8,21 @@ import {CreateTempVideoFileFromHlsUseCase} from '../application/createTempVideoF
 import {Proxy} from '../core/models/Proxy.ts';
 
 loadEnv()
-const proxy = new Proxy({
-  address: process.env.PROXY_ADDRESS!,
-  port: process.env.PROXY_PORT!,
-  username: process.env.PROXY_USERNAME,
-  password: process.env.PROXY_PASSWORD,
-})
+const proxy = process.env.PROXY_ADDRESS && process.env.PROXY_PORT
+  ? new Proxy({
+      address: process.env.PROXY_ADDRESS!,
+      port: process.env.PROXY_PORT!,
+      username: process.env.PROXY_USERNAME,
+      password: process.env.PROXY_PASSWORD,
+    })
+  : new NullProxy();
 
 
 const videoCreatorInFolder = new CreateTempVideoFileFromHlsUseCase(
   new PuppeteerWebTracerService(),
   new FfmpegVideoService(proxy),
-  proxy
+  proxy,
+
 )
 
 const bot = new Bot(process.env.BOT_TOKEN!);

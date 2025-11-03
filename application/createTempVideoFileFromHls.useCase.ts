@@ -8,7 +8,7 @@ export class CreateTempVideoFileFromHlsUseCase {
   constructor(
     private readonly webTracerService: IWebTracerService,
     private readonly videoService: IVideoService,
-    private readonly proxy: Proxy
+    private readonly proxy: Proxy = new NullProxy()
   ) {}
 
   async execute(url: string) {

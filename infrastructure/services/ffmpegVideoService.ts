@@ -8,11 +8,11 @@ import {TwitterCodecTypesEnum} from '../../core/enums/twitterCodecTypesEnum.ts';
 import {mkdir} from 'node:fs'
 import path from 'node:path';
 import type {Proxy} from '../../core/models/Proxy.ts';
+import {NullProxy} from '../../core/models/NullProxy.ts';
 
 export class FfmpegVideoService implements IVideoService {
-  private readonly proxy: Proxy
-  constructor(proxy: Proxy) {
-    this.proxy = proxy;
+  constructor(
+    private readonly proxy: Proxy = new NullProxy()) {
   }
 
   async getVideoMetadata(filePath: string): Promise<VideoMetadata> {
@@ -118,7 +118,7 @@ export class FfmpegVideoService implements IVideoService {
       stderr: 'inherit',
       env: {
         'http_proxy': this.proxy?.isHttp()
-          ? this.proxy?.getConnectionString()
+          ?  this.proxy?.getConnectionString()
           : ''
       }
     })
