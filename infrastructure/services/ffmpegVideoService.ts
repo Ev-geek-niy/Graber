@@ -18,6 +18,7 @@ export class FfmpegVideoService implements IVideoService {
     try {
       const {stdout} = Bun.spawn([
         'ffprobe',
+        '-http_proxy', `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
         '-loglevel', 'error',
         '-show_streams',
         '-show_format',
@@ -74,7 +75,11 @@ export class FfmpegVideoService implements IVideoService {
       '-movflags', '+faststart',
       outputPath
     ], {
-      stderr: 'inherit'
+      stderr: 'inherit',
+      env: {
+        'http_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
+        'https_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
+      }
     })
 
     const exitCode = await proc.exited
@@ -100,9 +105,12 @@ export class FfmpegVideoService implements IVideoService {
       '-f', 'mp4',
       'pipe:1'
     ], {
-
       stdout: 'pipe',
-      stderr: 'inherit'
+      stderr: 'inherit',
+      env: {
+        'http_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
+        'https_proxy': `http://${process.env.PROXY_USERNAME}:${process.env.PROXY_PASSWORD}@${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`,
+      }
     })
 
     log('Готово!')

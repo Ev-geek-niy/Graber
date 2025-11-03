@@ -10,11 +10,24 @@ export class CreateTempVideoFileFromHlsUseCase {
   ) {}
 
   async execute(url: string) {
-
     const filename = `${crypto.randomUUID()}.mp4`;
     const tempFolderPath = `./temp/`;
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      headless: false,
+      args: [
+        process.env.PROXY_ADDRESS
+          ? `--proxy-server=http://${process.env.PROXY_ADDRESS}:${process.env.PROXY_PORT}`
+          : ''
+      ]
+    });
     const page = await browser.newPage();
+
+    if (process.env.PROXY_ADDRESS && process.env.PROXY_USERNAME && process.env.PROXY_PASSWORD){
+      await page.authenticate({
+        username: process.env.PROXY_USERNAME!,
+        password: process.env.PROXY_PASSWORD!,
+      })
+    }
 
     const hlsMapUrl = await this.webTracerService.getHlsMapUrl(url, page)
     const outputPath = await this.videoService.saveVideoToFolder(hlsMapUrl, filename, tempFolderPath);
