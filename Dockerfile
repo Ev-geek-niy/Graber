@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y \
     libpci3 \
     libxrender1 \
     xdg-utils \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Рабочая директория
