@@ -18,7 +18,8 @@ export class CreateTempVideoFileFromHlsUseCase {
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
       headless: true,
       args: [
-        process.env.PUPPETEER_ARGS?.split(' '),
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
         this.proxy.isActive()
           ? `--proxy-server=${this.proxy.getConnectionString(true)}`
           : ''
