@@ -46,5 +46,6 @@ COPY . .
 ENV PUPPETEER_CACHE_DIR=/root/.cache/puppeteer
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 ENV PUPPETEER_EXECUTABLE_PATH=/root/.cache/puppeteer/chrome/linux-135.0.7049.84/chrome-linux64/chrome
+ENV PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox"
 
 CMD ["bun", "run", "./bot/bot.ts"]

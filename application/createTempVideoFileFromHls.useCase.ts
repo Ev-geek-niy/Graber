@@ -15,8 +15,10 @@ export class CreateTempVideoFileFromHlsUseCase {
     const filename = `${crypto.randomUUID()}.mp4`;
     const tempFolderPath = `./temp/`;
     const browser = await puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
       headless: true,
       args: [
+        process.env.PUPPETEER_ARGS?.split(' '),
         this.proxy.isActive()
           ? `--proxy-server=${this.proxy.getConnectionString(true)}`
           : ''
