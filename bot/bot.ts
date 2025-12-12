@@ -6,6 +6,7 @@ import {FfmpegVideoService} from '../infrastructure/services/ffmpegVideoService.
 import {log} from '../shared/logger.ts';
 import {CreateTempVideoFileFromHlsUseCase} from '../application/createTempVideoFileFromHls.useCase.ts';
 import {Proxy} from '../core/models/Proxy.ts';
+import {NullProxy} from '../core/models/NullProxy.ts';
 
 loadEnv()
 const proxy = process.env.PROXY_ADDRESS && process.env.PROXY_PORT

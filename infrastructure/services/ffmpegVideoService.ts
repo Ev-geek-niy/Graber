@@ -12,7 +12,7 @@ import {NullProxy} from '../../core/models/NullProxy.ts';
 
 export class FfmpegVideoService implements IVideoService {
   constructor(
-    private readonly proxy: Proxy = new NullProxy()) {
+    private readonly proxy?: Proxy = new NullProxy()) {
   }
 
   async getVideoMetadata(filePath: string): Promise<VideoMetadata> {
