@@ -16,7 +16,7 @@ export class Proxy {
     this.password = settings.password;
   }
 
-  public getConnectionString(withoutCredentials: boolean = false) {
+  public getConnectionString(withoutCredentials: boolean = false) : string {
     return this.username && this.password && !withoutCredentials
       ? `${this.protocol}://${this.username}:${this.password}@${this.address}:${this.port}`
       : `${this.protocol}://${this.address}:${this.port}`;
@@ -33,18 +33,18 @@ export class Proxy {
     }
   }
 
-  public isActive() {
-    return this.address && this.port;
+  public isActive() : boolean {
+    return Boolean(this.address && this.port);
   }
 
-  public isUseCredentials() {
-    return this.username && this.password;
+  public isUseCredentials() : boolean {
+    return Boolean(this.username && this.password);
   }
 
-  public isHttp() {
+  public isHttp() : boolean {
     if (!this.isActive())
       return false;
 
-    return this.protocol === 'http';
+    return Boolean(this.protocol === 'http');
   }
 }
