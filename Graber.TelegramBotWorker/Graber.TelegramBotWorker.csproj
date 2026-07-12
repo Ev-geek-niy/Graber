@@ -10,4 +10,8 @@
       <PackageReference Include="Telegram.Bot" Version="22.10.1.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Graber.Application\Graber.Application.csproj" />
+    </ItemGroup>
+
 </Project>

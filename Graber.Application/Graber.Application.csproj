@@ -6,4 +6,12 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Graber.Domain\Graber.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="UseCases\" />
+    </ItemGroup>
+
 </Project>

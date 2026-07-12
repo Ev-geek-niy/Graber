@@ -10,4 +10,8 @@
       <PackageReference Include="PuppeteerSharp" Version="25.3.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Graber.Application\Graber.Application.csproj" />
+    </ItemGroup>
+
 </Project>
