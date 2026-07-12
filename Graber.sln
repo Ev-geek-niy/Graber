@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3B05EADA-BE95-4D4D-8F86-1DB0869D8524}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{168B87C9-F74B-4399-9365-309CDA7DC929}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graber.Domain", "Graber.Domain\Graber.Domain.csproj", "{34CF50D6-A5AE-4BAC-B982-7F2E201801DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graber.Application", "Graber.Application\Graber.Application.csproj", "{DD893586-B02C-40D1-A511-8FC90CEDD0BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graber.Infrastructure", "Graber.Infrastructure\Graber.Infrastructure.csproj", "{42E247A8-0864-41EC-8470-529CF16BE8AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graber.TelegramBotWorker", "Graber.TelegramBotWorker\Graber.TelegramBotWorker.csproj", "{244014DE-992E-4ECD-B8F0-4D232359536F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graber.UnitTests", "Graber.UnitTests\Graber.UnitTests.csproj", "{184D8D34-90ED-41D8-BD0D-07EC4507ADFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graber.IntegrationTests", "Graber.IntegrationTests\Graber.IntegrationTests.csproj", "{21B7FF96-EE48-4056-869F-ACDCE729A406}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{34CF50D6-A5AE-4BAC-B982-7F2E201801DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34CF50D6-A5AE-4BAC-B982-7F2E201801DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34CF50D6-A5AE-4BAC-B982-7F2E201801DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34CF50D6-A5AE-4BAC-B982-7F2E201801DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD893586-B02C-40D1-A511-8FC90CEDD0BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD893586-B02C-40D1-A511-8FC90CEDD0BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD893586-B02C-40D1-A511-8FC90CEDD0BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD893586-B02C-40D1-A511-8FC90CEDD0BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42E247A8-0864-41EC-8470-529CF16BE8AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42E247A8-0864-41EC-8470-529CF16BE8AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42E247A8-0864-41EC-8470-529CF16BE8AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42E247A8-0864-41EC-8470-529CF16BE8AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{244014DE-992E-4ECD-B8F0-4D232359536F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{244014DE-992E-4ECD-B8F0-4D232359536F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{244014DE-992E-4ECD-B8F0-4D232359536F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{244014DE-992E-4ECD-B8F0-4D232359536F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{184D8D34-90ED-41D8-BD0D-07EC4507ADFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{184D8D34-90ED-41D8-BD0D-07EC4507ADFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{184D8D34-90ED-41D8-BD0D-07EC4507ADFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{184D8D34-90ED-41D8-BD0D-07EC4507ADFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21B7FF96-EE48-4056-869F-ACDCE729A406}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21B7FF96-EE48-4056-869F-ACDCE729A406}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21B7FF96-EE48-4056-869F-ACDCE729A406}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21B7FF96-EE48-4056-869F-ACDCE729A406}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{34CF50D6-A5AE-4BAC-B982-7F2E201801DE} = {3B05EADA-BE95-4D4D-8F86-1DB0869D8524}
+		{DD893586-B02C-40D1-A511-8FC90CEDD0BD} = {3B05EADA-BE95-4D4D-8F86-1DB0869D8524}
+		{42E247A8-0864-41EC-8470-529CF16BE8AD} = {3B05EADA-BE95-4D4D-8F86-1DB0869D8524}
+		{244014DE-992E-4ECD-B8F0-4D232359536F} = {3B05EADA-BE95-4D4D-8F86-1DB0869D8524}
+		{184D8D34-90ED-41D8-BD0D-07EC4507ADFF} = {168B87C9-F74B-4399-9365-309CDA7DC929}
+		{21B7FF96-EE48-4056-869F-ACDCE729A406} = {168B87C9-F74B-4399-9365-309CDA7DC929}
+	EndGlobalSection
+EndGlobal
