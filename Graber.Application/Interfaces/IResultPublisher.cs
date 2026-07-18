@@ -4,5 +4,6 @@ namespace Graber.Application.Interfaces;
 
 public interface IResultPublisher
 {
-    public Result<Video> Publish(Video video);
+    public void Publish(Result<Video> result);
+    public Task PublishAsync(Result<Video> result);
 }

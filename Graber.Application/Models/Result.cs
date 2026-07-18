@@ -23,11 +23,12 @@ public static class Result
 {
     public static Failure Failure(ScrapingErrorType type) => new(type);
     public static Failure Failure(ScrapingErrorType type, string message) => new(type, message);
+    public static Failure Failure(ScrapingError error) => new(error.Type, error.Message);
     public static Result<T> Success<T>(T value) => new(false, value, null);
 }
 
 public class Failure(ScrapingErrorType type, string message)
 {
-    public ScrapingError Error { get; init; } = new(type, message);
-    public Failure(ScrapingErrorType type) : this(type, "проверка"){}
+    public ScrapingError Error { get; } = new(type, message);
+    public Failure(ScrapingErrorType type) : this(type, ScrapingErrorMessages.GetMessage(type)) {}
 }
