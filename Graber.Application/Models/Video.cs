@@ -2,8 +2,8 @@
 
 namespace Graber.Application.Models;
 
-public class Video
+public class Video(Stream videoStream, VideoMetadata metadata)
 {
-    public Stream VideoStream { get; init; }
-    public VideoMetadata Metadata { get; init; }
+    public Stream VideoStream { get; init; } = videoStream;
+    public VideoMetadata Metadata { get; init; } = metadata;
 }
