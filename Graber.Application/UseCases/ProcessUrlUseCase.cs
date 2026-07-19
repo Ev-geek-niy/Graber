@@ -10,7 +10,7 @@ public class ProcessUrlUseCase(
     IResultPublisher publisher
     )
 {
-    public async Task Execute(string url)
+    public async Task ExecuteAsync(string url)
     {
         var scraper = scraperProvider.GetScraper(url);
         if (scraper == null)
@@ -19,12 +19,7 @@ public class ProcessUrlUseCase(
             return;
         }
 
-        var result = scraper.Execute(url);
-        if (result.IsFailure)
-        {
-            await publisher.PublishAsync(Result.Failure(result.Error ?? throw new ArgumentNullException()));
-            return;
-        }
+        var result = await scraper.ExecuteAsync(url);
         
         await publisher.PublishAsync(result);
     }
