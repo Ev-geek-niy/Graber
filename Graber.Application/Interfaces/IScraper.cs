@@ -2,8 +2,4 @@
 
 namespace Graber.Application.Interfaces;
 
-public interface IScraper<TInput, TOutput>
-{
-    public bool CanExecute(TInput input);
-    public Task<Result<TOutput>> ExecuteAsync(TInput input);
-}
+public interface IScraper : IHandler<string, Video>;

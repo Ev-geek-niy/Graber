@@ -5,10 +5,7 @@ using Graber.Application.Models;
 namespace Graber.Application.Providers;
 
 public class ScraperProvider(
-    IEnumerable<IScraper<string, Video>> scrapers)
+    IEnumerable<IScraper> scrapers)
 {
-    public IScraper<string, Video>? GetScraper(string url)
-    {
-        return scrapers.FirstOrDefault(scraper => scraper.CanExecute(url));
-    }
+    public IScraper? GetScraper(string url) => scrapers.FirstOrDefault(scraper => scraper.CanExecute(url));
 }
