@@ -5,7 +5,7 @@ using PuppeteerSharp;
 
 namespace Graber.Infrastructure.Scrapers;
 
-public class XScraper(IMediaDownloader downloader) : IScraper
+public class XScraper(IMediaDownloader downloader, IMetadataExtractor extractor) : IScraper
 {
     public bool CanExecute(string input)
     {
@@ -20,9 +20,14 @@ public class XScraper(IMediaDownloader downloader) : IScraper
             return Result.Failure(playlistUrl.Error);
         
         var outputStream = await downloader.ExecuteAsync(playlistUrl.Value);
+        if (outputStream.IsFailure)
+            return Result.Failure(outputStream.Error);
         
-        //TODO: дописать метод
-        return Result.Failure(ScrapingErrorType.DeleteVideo);
+        var metadata = await extractor.ExtractAsync(outputStream.Value);
+        if  (metadata.IsFailure)
+            return Result.Failure(metadata.Error);
+        
+        return Result.Success(new Video(outputStream.Value,  metadata.Value));
     }
 
     public async Task<Result<string>> GetPlaylistUrlAsync(string input)
@@ -41,9 +46,9 @@ public class XScraper(IMediaDownloader downloader) : IScraper
             string? playlistUrl = null;
             page.Response += (_, e) =>
             {
-                if (e.Response.Url.Contains(".m3u8"))
+                if (e.Response.Url.Contains(".m3u8", StringComparison.OrdinalIgnoreCase))
                 {
-                    playlistUrl = e.Response.Url;
+                    playlistUrl ??= e.Response.Url;
                 }
             };
 
