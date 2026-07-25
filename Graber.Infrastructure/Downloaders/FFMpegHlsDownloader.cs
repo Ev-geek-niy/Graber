@@ -1,8 +1,6 @@
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
 using FFMpegCore;
-using FFMpegCore.Enums;
-using FFMpegCore.Extensions.Downloader;
 using FFMpegCore.Pipes;
 using Graber.Application.Enums;
 
