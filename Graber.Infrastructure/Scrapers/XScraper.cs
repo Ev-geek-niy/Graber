@@ -35,27 +35,24 @@ public class XScraper(IMediaDownloader downloader, IMetadataExtractor extractor)
         try
         {
             await new BrowserFetcher().DownloadAsync();
-            
+
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions()
             {
-                Headless = true
+                Headless = false
             });
 
             await using var page = await browser.NewPageAsync();
 
-            string? playlistUrl = null;
-            page.Response += (_, e) =>
-            {
-                if (e.Response.Url.Contains(".m3u8", StringComparison.OrdinalIgnoreCase))
-                {
-                    playlistUrl ??= e.Response.Url;
-                }
-            };
+            var playlistTask = page.WaitForResponseAsync(response =>
+                response.Url.Contains(".m3u8", StringComparison.OrdinalIgnoreCase));
 
             await page.GoToAsync(input, new NavigationOptions()
             {
-                WaitUntil = [WaitUntilNavigation.Networkidle2]
+                WaitUntil = [WaitUntilNavigation.DOMContentLoaded]
             });
+
+            var response = await playlistTask.WaitAsync(TimeSpan.FromSeconds(15));
+            var playlistUrl = response.Url;
 
             if (string.IsNullOrEmpty(playlistUrl))
             {
@@ -63,6 +60,10 @@ public class XScraper(IMediaDownloader downloader, IMetadataExtractor extractor)
             }
 
             return Result.Success(playlistUrl);
+        }
+        catch (TimeoutException)
+        {
+            return Result.Failure(ScrapingErrorType.NotFoundVideo);
         }
         catch (Exception ex)
         {

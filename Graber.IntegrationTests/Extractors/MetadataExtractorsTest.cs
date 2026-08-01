@@ -7,7 +7,7 @@ namespace Graber.IntegrationTests.Extractors;
 public class MetadataExtractorsTest
 {
     [Fact]
-    public async Task MetadataExtractor_Extract_IsSuccessful()
+     public async Task MetadataExtractor_Extract_IsSuccessful()
     {
         var downloader = new FFMpegHlsDownloader();
         var extractor = new MetadataExtractor();
