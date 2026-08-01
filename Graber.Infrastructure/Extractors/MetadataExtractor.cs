@@ -10,13 +10,17 @@ public class MetadataExtractor : IMetadataExtractor
 {
     public async Task<Result<VideoMetadata>> ExtractAsync(Stream stream)
     {
+        var initialPosition = stream.CanSeek
+            ? stream.Position
+            : (long?)null;
+
         try
         {
             var metadataAnalysis = await FFProbe.AnalyseAsync(stream);
             var metadata = new VideoMetadata(
-                FileName: "Filename",
+                FileName: "video.mp4",
                 Extension: metadataAnalysis.Format.FormatName,
-                MimeType: "mpeg",
+                MimeType: "video/mp4",
                 Duration: metadataAnalysis.Duration,
                 Width: metadataAnalysis.PrimaryVideoStream!.Width,
                 Height: metadataAnalysis.PrimaryVideoStream.Height);
@@ -26,6 +30,11 @@ public class MetadataExtractor : IMetadataExtractor
         catch (Exception ex)
         {
             return Result.Failure(ScrapingErrorType.ServiceNotSupported);
+        }
+        finally
+        {
+            if (initialPosition.HasValue)
+                stream.Position = initialPosition.Value;
         }
     }
 }

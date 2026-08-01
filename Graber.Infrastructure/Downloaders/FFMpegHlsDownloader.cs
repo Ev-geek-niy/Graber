@@ -23,7 +23,9 @@ public class FFMpegHlsDownloader : IMediaDownloader
                 .OutputToPipe(new StreamPipeSink(memoryStream), options => options
                     .WithVideoCodec("copy")
                     .WithAudioCodec("copy")
-                    .ForceFormat("mpegts"))
+                    .WithCustomArgument(
+                        "-movflags +frag_keyframe+empty_moov+default_base_moof")
+                    .ForceFormat("mp4"))
                 .ProcessAsynchronously();
 
             memoryStream.Position = 0;

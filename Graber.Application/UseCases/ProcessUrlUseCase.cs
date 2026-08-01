@@ -6,21 +6,19 @@ using Graber.Application.Providers;
 namespace Graber.Application.UseCases;
 
 public class ProcessUrlUseCase(
-    ScraperProvider scraperProvider,
-    IResultPublisher publisher
+    ScraperProvider scraperProvider
     )
 {
-    public async Task ExecuteAsync(string url)
+    public async Task<Result<Video>> ExecuteAsync(string url)
     {
         var scraper = scraperProvider.GetScraper(url);
         if (scraper == null)
-        {
-            await publisher.PublishAsync(Result.Failure(ScrapingErrorType.ServiceNotSupported));
-            return;
-        }
+            return Result.Failure(ScrapingErrorType.ServiceNotSupported);
 
         var result = await scraper.ExecuteAsync(url);
-        
-        await publisher.PublishAsync(result);
+        if (result.IsFailure)
+            return Result.Failure(result.Error);
+
+        return result;
     }
 }
