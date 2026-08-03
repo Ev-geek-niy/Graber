@@ -1,23 +1,32 @@
 ﻿using Graber.Infrastructure.Downloaders;
 using Graber.Infrastructure.Extractors;
 using Graber.Infrastructure.Scrapers;
+using Xunit.Abstractions;
 
 namespace Graber.IntegrationTests.Extractors;
 
-public class MetadataExtractorsTest
+public class MetadataExtractorsTest(ITestOutputHelper output)
 {
-    [Fact]
-     public async Task MetadataExtractor_Extract_IsSuccessful()
+    [Theory]
+    [InlineData("https://x.com/philosophymeme0/status/2080134676878967139?s=20")]
+    [InlineData("https://x.com/rootpilot/status/2083280043531452776?s=20")]
+    [InlineData("https://x.com/MemoryOffline/status/2082300088064618924?s=20")]
+     public async Task MetadataExtractor_Extract_IsSuccessful(string url)
     {
         var downloader = new FFMpegHlsDownloader();
         var extractor = new MetadataExtractor();
-        var scraper = new XScraper(downloader, extractor);
+        var scraper = new XScraper();
         
-        var playlistUrlResult = await scraper.GetPlaylistUrlAsync("https://x.com/philosophymeme0/status/2080134676878967139?s=20");
+        var playlistUrlResult = await scraper.GetPlaylistUrlAsync(url);
+        Assert.True(playlistUrlResult.IsSuccess);
+        
         var streamResult = await downloader.ExecuteAsync(playlistUrlResult.Value);
-        var metadataResult = await extractor.ExtractAsync(streamResult.Value);
+        Assert.True(streamResult.IsSuccess);
         
+        var metadataResult = await extractor.ExtractAsync(streamResult.Value);
         Assert.True(metadataResult.IsSuccess);
         Assert.NotNull(metadataResult.Value);
+        
+        output.WriteLine($"Resolution: {metadataResult.Value.Width}x{metadataResult.Value.Height}");
     }
 }

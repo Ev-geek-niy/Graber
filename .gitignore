@@ -136,3 +136,6 @@ _NCrunch*
 
 **/appsettings.development.json
 **/appsettings.production.json
+
+# Local research artifacts
+.research/

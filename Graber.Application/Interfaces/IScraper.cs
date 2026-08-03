@@ -2,4 +2,4 @@
 
 namespace Graber.Application.Interfaces;
 
-public interface IScraper : IHandler<string, Video>;
+public interface IScraper : IHandler<string, string>;

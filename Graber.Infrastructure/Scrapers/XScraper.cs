@@ -5,29 +5,21 @@ using PuppeteerSharp;
 
 namespace Graber.Infrastructure.Scrapers;
 
-public class XScraper(IMediaDownloader downloader, IMetadataExtractor extractor) : IScraper
+public class XScraper : IScraper
 {
     public bool CanExecute(string input)
     {
         return input.Contains("x.com");
     }
 
-    public async Task<Result<Video>> ExecuteAsync(string input)
+    public async Task<Result<string>> ExecuteAsync(string input)
     {
         var playlistUrl = await GetPlaylistUrlAsync(input);
         
         if (playlistUrl.IsFailure)
             return Result.Failure(playlistUrl.Error);
         
-        var outputStream = await downloader.ExecuteAsync(playlistUrl.Value);
-        if (outputStream.IsFailure)
-            return Result.Failure(outputStream.Error);
-        
-        var metadata = await extractor.ExtractAsync(outputStream.Value);
-        if  (metadata.IsFailure)
-            return Result.Failure(metadata.Error);
-        
-        return Result.Success(new Video(outputStream.Value,  metadata.Value));
+        return Result.Success(playlistUrl.Value);
     }
 
     public async Task<Result<string>> GetPlaylistUrlAsync(string input)
@@ -38,7 +30,7 @@ public class XScraper(IMediaDownloader downloader, IMetadataExtractor extractor)
 
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions()
             {
-                Headless = false
+                Headless = true
             });
 
             await using var page = await browser.NewPageAsync();

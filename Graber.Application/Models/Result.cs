@@ -9,7 +9,7 @@ public class Result<T>
     public T Value { get; }
     public ScrapingError? Error { get; init; }
 
-    internal Result(bool isFailure, T value, ScrapingError? error)
+    public Result(bool isFailure, T value, ScrapingError? error)
     {
         IsFailure = isFailure;
         Value = value;

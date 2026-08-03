@@ -6,7 +6,9 @@ using Graber.Application.Providers;
 namespace Graber.Application.UseCases;
 
 public class ProcessUrlUseCase(
-    ScraperProvider scraperProvider
+    ScraperProvider scraperProvider,
+    IMetadataExtractor extractor,
+    MediaDownloaderProvider downloaderProvider
     )
 {
     public async Task<Result<Video>> ExecuteAsync(string url)
@@ -15,10 +17,34 @@ public class ProcessUrlUseCase(
         if (scraper == null)
             return Result.Failure(ScrapingErrorType.ServiceNotSupported);
 
-        var result = await scraper.ExecuteAsync(url);
-        if (result.IsFailure)
-            return Result.Failure(result.Error);
+        var hlsUrlResult = await scraper.ExecuteAsync(url);
+        if (hlsUrlResult.IsFailure)
+            return Result.Failure(hlsUrlResult.Error);
 
-        return result;
+        var downloader = downloaderProvider.GetDownloader(hlsUrlResult.Value);
+        if (downloader == null)
+            return Result.Failure(ScrapingErrorType.ServiceNotSupported);
+        
+        var mediaResult = await downloader.ExecuteAsync(hlsUrlResult.Value);
+        if (mediaResult.IsFailure)
+            return Result.Failure(mediaResult.Error);
+
+        var stream = mediaResult.Value;
+        var ownershipTransfered = false;
+        try
+        {
+            var metadataResult = await extractor.ExtractAsync(mediaResult.Value);
+            if (metadataResult.IsFailure)
+                return Result.Failure(metadataResult.Error);
+            
+            ownershipTransfered = true;
+            var video = new Video(stream, metadataResult.Value);
+            return Result.Success(video);
+        }
+        finally
+        {
+            if (!ownershipTransfered)
+                await stream.DisposeAsync();
+        }
     }
 }
