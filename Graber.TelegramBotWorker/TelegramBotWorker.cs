@@ -41,7 +41,7 @@ public class TelegramBotWorker(
 
         await using var scope = scopeFactory.CreateAsyncScope();
         var useCase = scope.ServiceProvider.GetRequiredService<ProcessUrlUseCase>();
-        var result = await useCase.ExecuteAsync(url);
+        var result = await useCase.ExecuteAsync(url, cancellationToken);
 
         if (result.IsFailure)
         {

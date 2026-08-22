@@ -25,7 +25,7 @@ public class ProcessUrlUseCaseTest
         var extractor = new StubExtractor(metadata);
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
-        var result = await useCase.ExecuteAsync(VideoUrl);
+        var result = await useCase.ExecuteAsync(VideoUrl, CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Same(stream, result.Value.VideoStream);
         Assert.Same(metadata, result.Value.Metadata);
@@ -42,7 +42,7 @@ public class ProcessUrlUseCaseTest
         var extractor = new StubExtractor();
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
-        var result = await useCase.ExecuteAsync(VideoUrl);
+        var result = await useCase.ExecuteAsync(VideoUrl, CancellationToken.None);
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
@@ -61,7 +61,7 @@ public class ProcessUrlUseCaseTest
         var extractor = new StubExtractor();
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
-        var result = await useCase.ExecuteAsync(VideoUrl);
+        var result = await useCase.ExecuteAsync(VideoUrl,  CancellationToken.None);
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
@@ -79,7 +79,7 @@ public class ProcessUrlUseCaseTest
         var extractor = new StubExtractor();
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
-        var result = await useCase.ExecuteAsync(VideoUrl);
+        var result = await useCase.ExecuteAsync(VideoUrl,  CancellationToken.None);
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
@@ -98,7 +98,7 @@ public class ProcessUrlUseCaseTest
         var extractor = new StubExtractor();
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
-        var result = await useCase.ExecuteAsync(VideoUrl);
+        var result = await useCase.ExecuteAsync(VideoUrl, CancellationToken.None);
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
@@ -120,7 +120,7 @@ public class ProcessUrlUseCaseTest
         var extractor = new StubExtractor(metadata, metadataError);
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
-        var result = await useCase.ExecuteAsync(VideoUrl);
+        var result = await useCase.ExecuteAsync(VideoUrl, CancellationToken.None);
         
         Assert.False(stream.CanRead);
         Assert.True(result.IsFailure);
@@ -142,9 +142,28 @@ public class ProcessUrlUseCaseTest
         var extractor = new ThrowingExtractor(expectedException);
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => useCase.ExecuteAsync(VideoUrl));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => useCase.ExecuteAsync(VideoUrl, CancellationToken.None));
         
         Assert.False(stream.CanRead);
         Assert.Same(expectedException, exception);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenExtractorThrowsOperationCanceledException_DisposesStreamAndRethrows()
+    {
+        var expectedException = new OperationCanceledException();
+        using var stream = new MemoryStream();
+        
+        var scraperProvider = new ScraperProvider(
+        [
+            new StubScraper(true, TestPlaylistUrl)
+        ]);
+        var downloader = new MediaDownloaderProvider([new StubHlsDownloader(true, stream)]);
+        var extractor = new ThrowingExtractor(expectedException);
+        var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
+        
+        var exception = await Assert.ThrowsAsync<OperationCanceledException>(() => useCase.ExecuteAsync(VideoUrl, CancellationToken.None));
+        Assert.Same(expectedException, exception);
+        Assert.False(stream.CanRead);
     }
 }

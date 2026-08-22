@@ -18,8 +18,12 @@ public class StubHlsDownloader : IMediaDownloader
     }
     public bool CanExecute(string input) => CanExecuteResult;
 
-    public Task<Result<Stream>> ExecuteAsync(string input) =>
-        Task.FromResult(ErrorValue is null && ResultValue is not null
+    public Task<Result<Stream>> ExecuteAsync(string input, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromResult(ErrorValue is null && ResultValue is not null
             ? Result<Stream>.Success(ResultValue!)
             : Result<Stream>.Failure(ErrorValue!));
+    }
+        
 }

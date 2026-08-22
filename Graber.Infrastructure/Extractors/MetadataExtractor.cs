@@ -1,4 +1,5 @@
 ﻿using FFMpegCore;
+using FFMpegCore.Exceptions;
 using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
@@ -8,7 +9,7 @@ namespace Graber.Infrastructure.Extractors;
 
 public class MetadataExtractor : IMetadataExtractor
 {
-    public async Task<Result<VideoMetadata>> ExtractAsync(Stream stream)
+    public async Task<Result<VideoMetadata>> ExtractAsync(Stream stream, CancellationToken ct)
     {
         var initialPosition = stream.CanSeek
             ? stream.Position
@@ -16,7 +17,7 @@ public class MetadataExtractor : IMetadataExtractor
 
         try
         {
-            var metadataAnalysis = await FFProbe.AnalyseAsync(stream);
+            var metadataAnalysis = await FFProbe.AnalyseAsync(stream, cancellationToken: ct);
             var metadata = new VideoMetadata(
                 FileName: "video.mp4",
                 Extension: metadataAnalysis.Format.FormatName,
@@ -27,7 +28,7 @@ public class MetadataExtractor : IMetadataExtractor
 
             return Result<VideoMetadata>.Success(metadata);
         }
-        catch (Exception)
+        catch (FFMpegException)
         {
             return Result<VideoMetadata>.Failure(new MetadataError(MetadataErrorCode.ExtractionFailed));
         }

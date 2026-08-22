@@ -16,8 +16,9 @@ public class StubExtractor : IMetadataExtractor
         ErrorValue = resultError;
     }
     
-    public Task<Result<VideoMetadata>> ExtractAsync(Stream stream)
+    public Task<Result<VideoMetadata>> ExtractAsync(Stream stream,  CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         return Task.FromResult(ErrorValue is null && ResultValue is not null
             ? Result<VideoMetadata>.Success(ResultValue!)
             : Result<VideoMetadata>.Failure(ErrorValue!));

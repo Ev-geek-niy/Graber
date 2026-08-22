@@ -11,13 +11,13 @@ public class ProcessUrlUseCase(
     MediaDownloaderProvider downloaderProvider
     )
 {
-    public async Task<Result<Video>> ExecuteAsync(string url)
+    public async Task<Result<Video>> ExecuteAsync(string url, CancellationToken ct)
     {
         var scraper = scraperProvider.GetScraper(url);
         if (scraper == null)
             return Result<Video>.Failure(new PipelineError(PipelineErrorCode.SourceNotSupported));
 
-        var hlsUrlResult = await scraper.ExecuteAsync(url);
+        var hlsUrlResult = await scraper.ExecuteAsync(url, ct);
         if (hlsUrlResult.IsFailure)
             return Result<Video>.Failure(hlsUrlResult.Error);
 
@@ -25,7 +25,7 @@ public class ProcessUrlUseCase(
         if (downloader == null)
             return Result<Video>.Failure(new PipelineError(PipelineErrorCode.DownloadMethodNotSupported));
         
-        var mediaResult = await downloader.ExecuteAsync(hlsUrlResult.Value);
+        var mediaResult = await downloader.ExecuteAsync(hlsUrlResult.Value, ct);
         if (mediaResult.IsFailure)
             return Result<Video>.Failure(mediaResult.Error);
 
@@ -33,7 +33,7 @@ public class ProcessUrlUseCase(
         var ownershipTransfered = false;
         try
         {
-            var metadataResult = await extractor.ExtractAsync(mediaResult.Value);
+            var metadataResult = await extractor.ExtractAsync(mediaResult.Value, ct);
             if (metadataResult.IsFailure)
                 return Result<Video>.Failure(metadataResult.Error);
             

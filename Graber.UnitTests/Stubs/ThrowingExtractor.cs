@@ -6,5 +6,9 @@ namespace Graber.UnitTests;
 
 public class ThrowingExtractor(Exception exception) : IMetadataExtractor
 {
-    public Task<Result<VideoMetadata>> ExtractAsync(Stream stream) => Task.FromException<Result<VideoMetadata>>(exception);
+    public Task<Result<VideoMetadata>> ExtractAsync(Stream stream, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromException<Result<VideoMetadata>>(exception); 
+    }
 }

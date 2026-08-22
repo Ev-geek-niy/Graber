@@ -12,18 +12,19 @@ public class XScraper : IScraper
         return input.Contains("x.com");
     }
 
-    public async Task<Result<string>> ExecuteAsync(string input)
+    public async Task<Result<string>> ExecuteAsync(string input, CancellationToken ct)
     {
-        var playlistUrl = await GetPlaylistUrlAsync(input);
-        
-        if (playlistUrl.IsFailure)
-            return Result<string>.Failure(playlistUrl.Error);
-        
-        return Result<string>.Success(playlistUrl.Value);
+        var playlistUrl = await GetPlaylistUrlAsync(input, ct);
+
+        return playlistUrl.IsFailure 
+            ? Result<string>.Failure(playlistUrl.Error) 
+            : Result<string>.Success(playlistUrl.Value);
     }
 
-    public async Task<Result<string>> GetPlaylistUrlAsync(string input)
+    public async Task<Result<string>> GetPlaylistUrlAsync(string input, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+        
         try
         {
             await new BrowserFetcher().DownloadAsync();
@@ -41,23 +42,20 @@ public class XScraper : IScraper
             await page.GoToAsync(input, new NavigationOptions()
             {
                 WaitUntil = [WaitUntilNavigation.DOMContentLoaded]
-            });
+            }).WaitAsync(ct);
 
-            var response = await playlistTask.WaitAsync(TimeSpan.FromSeconds(15));
+            var response = await playlistTask.WaitAsync(TimeSpan.FromSeconds(15), ct);
             var playlistUrl = response.Url;
 
-            if (string.IsNullOrEmpty(playlistUrl))
-            {
-                return Result<string>.Failure(new ScrapingError(ScrapingErrorCode.MediaNotFound));
-            }
-
-            return Result<string>.Success(playlistUrl);
+            return string.IsNullOrEmpty(playlistUrl) 
+                ? Result<string>.Failure(new ScrapingError(ScrapingErrorCode.MediaNotFound)) 
+                : Result<string>.Success(playlistUrl);
         }
         catch (TimeoutException)
         {
             return Result<string>.Failure(new ScrapingError(ScrapingErrorCode.MediaNotFound));
         }
-        catch (Exception)
+        catch (NavigationException)
         {
             return Result<string>.Failure(new ScrapingError(ScrapingErrorCode.MediaDiscoveryFailed));
         }

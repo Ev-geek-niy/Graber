@@ -18,8 +18,12 @@ public class StubScraper : IScraper
     
     public bool CanExecute(string input) => CanExecuteResult;
 
-    public Task<Result<string>> ExecuteAsync(string input) =>
-        Task.FromResult(ErrorValue is null && ResultValue is not null
+    public Task<Result<string>> ExecuteAsync(string input, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromResult(ErrorValue is null && ResultValue is not null
             ? Result<string>.Success(ResultValue!)
             : Result<string>.Failure(ErrorValue!));
+    }
+        
 }
