@@ -1,17 +1,5 @@
 # Graber Roadmap
 
-## In Progress
-
-### Уточнить обработку исключений и отмены
-
-- определить ожидаемые исключения Puppeteer, FFmpeg и FFprobe;
-- преобразовывать ожидаемые внешние сбои в соответствующий `Result.Failure`;
-- не скрывать ошибки программирования и конфигурации;
-- не преобразовывать `OperationCanceledException` в failure;
-- провести `CancellationToken` через media pipeline;
-- гарантировать освобождение ресурсов при отмене;
-- покрыть сценарии failure, exception и cancellation тестами.
-
 ## Next
 
 ### Сделать HLS discovery устойчивым
@@ -19,7 +7,7 @@
 - вынести timeout в конфигурацию;
 - настроить headless mode для production;
 - сделать жизненный цикл Chromium явным;
-- сохранить принятую семантику `NotFoundVideo` для неоткрывшейся страницы и отсутствующего `.m3u8`.
+- сохранить принятую семантику ошибок discovery: успешно открытая страница без `.m3u8` возвращает `MediaNotFound`, а сбой навигации — `MediaDiscoveryFailed`.
 
 ### Реализовать выбор низкого/среднего качества
 
@@ -63,6 +51,16 @@
 - документировать требования к Chromium, FFmpeg, FFprobe и сети.
 
 ## Completed
+
+### Уточнить обработку исключений и отмены
+
+- ожидаемые сбои Puppeteer, FFmpeg и FFprobe ограничены конкретными типами исключений и преобразуются в соответствующий `Result.Failure`;
+- ошибки программирования и конфигурации не скрываются общими обработчиками;
+- `OperationCanceledException` не преобразуется в failure;
+- `CancellationToken` проведён от Telegram handler через весь media pipeline;
+- FFmpeg и FFprobe получают токен отмены, а навигация и ожидание playlist поддерживают cancellation;
+- media buffer, media stream, browser и page освобождаются при failure, exception и cancellation;
+- сценарии failure, exception и cancellation покрыты unit- и integration-тестами.
 
 ### Переработать модель Result и ошибок
 
