@@ -13,7 +13,9 @@ public class MetadataExtractorsTest(ITestOutputHelper output)
     [InlineData("https://x.com/MemoryOffline/status/2082300088064618924?s=20")]
      public async Task MetadataExtractor_Extract_IsSuccessful(string url)
     {
-        var downloader = new FFMpegHlsDownloader();
+        var stream = new MemoryStream();
+        var mediaBufferFactory = new StubMediaBufferFactory(stream);
+        var downloader = new FFMpegHlsDownloader(mediaBufferFactory);
         var extractor = new MetadataExtractor();
         var scraper = new XScraper();
         

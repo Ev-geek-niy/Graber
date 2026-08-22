@@ -1,21 +1,34 @@
+using Graber.Application.Errors;
 using Graber.Infrastructure.Downloaders;
-using Graber.Infrastructure.Extractors;
 
 namespace Graber.IntegrationTests.Downloaders;
 
 public class FFMpegHlsDownloaderTest
 {
     [Fact]
-    public async Task FFMpegHlsDownloader_GetOutputStream_ShouldReturnStream()
+    public async Task ExecuteAsync_WhenDownloadSucceeds_ReturnsNonEmptyStream()
     {
-        var downloader = new FFMpegHlsDownloader();
+        using var stream = new MemoryStream();
+        var mediaBufferFactory = new StubMediaBufferFactory(stream);
+        var downloader = new FFMpegHlsDownloader(mediaBufferFactory);
         var result = await downloader.ExecuteAsync(
             "https://video.twimg.com/amplify_video/2080134653969674240/pl/slL7C-ESevTgXXL0.m3u8?tag=29&v=cfc");
 
         Assert.True(result.IsSuccess);
+        Assert.Same(stream, result.Value);
+        Assert.True(result.Value.Length > 0);
+    }
 
-        await using var value = result.Value;
+    [Fact]
+    public async Task ExecuteAsync_WhenDownloadFails_ReturnsFailureAndDisposesBuffer()
+    {
+        using var stream = new MemoryStream();
+        var mediaBufferFactory = new StubMediaBufferFactory(stream);
+        var downloader = new FFMpegHlsDownloader(mediaBufferFactory);
+        var result = await downloader.ExecuteAsync("not-an-absolute-url");
         
-        Assert.True(value.Length > 0);
+        Assert.True(result.IsFailure);
+        Assert.Equal(new DownloadError(DownloadErrorCode.DownloadFailed), result.Error);
+        Assert.False(stream.CanRead);
     }
 }

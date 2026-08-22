@@ -2,7 +2,6 @@ using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
 using PuppeteerSharp;
-using ScrapingError = Graber.Application.Errors.ScrapingError;
 
 namespace Graber.Infrastructure.Scrapers;
 
