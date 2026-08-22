@@ -2,13 +2,6 @@
 
 ## Next
 
-### Сделать HLS discovery устойчивым
-
-- вынести timeout в конфигурацию;
-- настроить headless mode для production;
-- сделать жизненный цикл Chromium явным;
-- сохранить принятую семантику ошибок discovery: успешно открытая страница без `.m3u8` возвращает `MediaNotFound`, а сбой навигации — `MediaDiscoveryFailed`.
-
 ### Реализовать выбор низкого/среднего качества
 
 - применить правило, подтверждённое исследованием HLS;
@@ -51,6 +44,16 @@
 - документировать требования к Chromium, FFmpeg, FFprobe и сети.
 
 ## Completed
+
+### Сделать HLS discovery устойчивым
+
+- timeout ожидания playlist и headless mode вынесены в типизированную конфигурацию `XScraperOptions`;
+- timeout валидируется при запуске приложения, а production-конфигурация использует headless mode;
+- владение Chromium вынесено в singleton `ChromiumBrowserProvider`, который потокобезопасно инициализирует и переиспользует browser;
+- provider асинхронно закрывает browser при завершении приложения и запрещает использование после начала disposal;
+- `XScraper` создаёт и освобождает отдельную page для каждого запроса, не управляя жизненным циклом browser;
+- сохранена семантика discovery: открытая страница без `.m3u8` возвращает `MediaNotFound`, а сбой навигации — `MediaDiscoveryFailed`;
+- binding, validation, конкурентная инициализация и disposal покрыты unit- и integration-тестами.
 
 ### Уточнить обработку исключений и отмены
 
