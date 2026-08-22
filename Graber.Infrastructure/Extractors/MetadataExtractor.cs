@@ -1,5 +1,5 @@
 ﻿using FFMpegCore;
-using Graber.Application.Enums;
+using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
 using Graber.Domain.Models;
@@ -25,11 +25,11 @@ public class MetadataExtractor : IMetadataExtractor
                 Width: metadataAnalysis.PrimaryVideoStream!.Width,
                 Height: metadataAnalysis.PrimaryVideoStream.Height);
 
-            return Result.Success(metadata);
+            return Result<VideoMetadata>.Success(metadata);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Result.Failure(ScrapingErrorType.ServiceNotSupported);
+            return Result<VideoMetadata>.Failure(new MetadataError(MetadataErrorCode.ExtractionFailed));
         }
         finally
         {

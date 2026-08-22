@@ -22,8 +22,10 @@ public class MetadataExtractorsTest(ITestOutputHelper output)
         
         var streamResult = await downloader.ExecuteAsync(playlistUrlResult.Value);
         Assert.True(streamResult.IsSuccess);
+
+        await using var value = streamResult.Value;
         
-        var metadataResult = await extractor.ExtractAsync(streamResult.Value);
+        var metadataResult = await extractor.ExtractAsync(value);
         Assert.True(metadataResult.IsSuccess);
         Assert.NotNull(metadataResult.Value);
         

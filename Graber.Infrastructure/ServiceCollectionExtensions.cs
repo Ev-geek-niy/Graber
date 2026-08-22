@@ -8,12 +8,15 @@ namespace Graber.Infrastructure;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection serviceCollection)
+    extension(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddScoped<IScraper, XScraper>();
-        serviceCollection.AddScoped<IMetadataExtractor, MetadataExtractor>();
-        serviceCollection.AddScoped<IMediaDownloader, FFMpegHlsDownloader>();
+        public IServiceCollection AddInfrastructure()
+        {
+            serviceCollection.AddScoped<IScraper, XScraper>();
+            serviceCollection.AddScoped<IMetadataExtractor, MetadataExtractor>();
+            serviceCollection.AddScoped<IMediaDownloader, FFMpegHlsDownloader>();
 
-        return serviceCollection;
+            return serviceCollection;
+        }
     }
 }

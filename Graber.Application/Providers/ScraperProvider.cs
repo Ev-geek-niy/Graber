@@ -1,6 +1,4 @@
-﻿using Graber.Application.Enums;
-using Graber.Application.Interfaces;
-using Graber.Application.Models;
+﻿using Graber.Application.Interfaces;
 
 namespace Graber.Application.Providers;
 

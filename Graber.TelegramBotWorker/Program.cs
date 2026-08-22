@@ -1,5 +1,8 @@
 using Graber.Application;
+using Graber.Application.Errors;
+using Graber.Application.Interfaces;
 using Graber.Infrastructure;
+using Graber.TelegramBotWorker.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Telegram.Bot;
@@ -14,15 +17,8 @@ public class Program
 
         builder.Services
             .AddApplication()
-            .AddInfrastructure();
-
-        var botToken = builder.Configuration["Telegram:BotToken"]
-            ?? throw new InvalidOperationException(
-                "Telegram bot token is not configured. Set Telegram__BotToken.");
-
-        builder.Services.AddSingleton<ITelegramBotClient>(
-            new TelegramBotClient(botToken));
-        builder.Services.AddHostedService<TelegramBotWorker>();
+            .AddInfrastructure()
+            .AddPresentation(builder.Configuration);
 
         await builder.Build().RunAsync();
     }

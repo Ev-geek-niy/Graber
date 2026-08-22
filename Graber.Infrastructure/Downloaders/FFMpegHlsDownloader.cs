@@ -2,7 +2,7 @@ using Graber.Application.Interfaces;
 using Graber.Application.Models;
 using FFMpegCore;
 using FFMpegCore.Pipes;
-using Graber.Application.Enums;
+using Graber.Application.Errors;
 
 namespace Graber.Infrastructure.Downloaders;
 
@@ -30,11 +30,11 @@ public class FFMpegHlsDownloader : IMediaDownloader
 
             memoryStream.Position = 0;
             
-            return Result.Success<Stream>(memoryStream);
+            return Result<Stream>.Success(memoryStream);
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            return Result.Failure(ScrapingErrorType.ServiceNotSupported);
+            return Result<Stream>.Failure(new DownloadError(DownloadErrorCode.DownloadFailed));
         }
     }
 }

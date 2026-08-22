@@ -1,4 +1,4 @@
-using Graber.Application.Enums;
+using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
 using Graber.Application.Providers;
@@ -15,19 +15,19 @@ public class ProcessUrlUseCase(
     {
         var scraper = scraperProvider.GetScraper(url);
         if (scraper == null)
-            return Result.Failure(ScrapingErrorType.ServiceNotSupported);
+            return Result<Video>.Failure(new PipelineError(PipelineErrorCode.SourceNotSupported));
 
         var hlsUrlResult = await scraper.ExecuteAsync(url);
         if (hlsUrlResult.IsFailure)
-            return Result.Failure(hlsUrlResult.Error);
+            return Result<Video>.Failure(hlsUrlResult.Error);
 
         var downloader = downloaderProvider.GetDownloader(hlsUrlResult.Value);
         if (downloader == null)
-            return Result.Failure(ScrapingErrorType.ServiceNotSupported);
+            return Result<Video>.Failure(new PipelineError(PipelineErrorCode.DownloadMethodNotSupported));
         
         var mediaResult = await downloader.ExecuteAsync(hlsUrlResult.Value);
         if (mediaResult.IsFailure)
-            return Result.Failure(mediaResult.Error);
+            return Result<Video>.Failure(mediaResult.Error);
 
         var stream = mediaResult.Value;
         var ownershipTransfered = false;
@@ -35,11 +35,11 @@ public class ProcessUrlUseCase(
         {
             var metadataResult = await extractor.ExtractAsync(mediaResult.Value);
             if (metadataResult.IsFailure)
-                return Result.Failure(metadataResult.Error);
+                return Result<Video>.Failure(metadataResult.Error);
             
             ownershipTransfered = true;
             var video = new Video(stream, metadataResult.Value);
-            return Result.Success(video);
+            return Result<Video>.Success(video);
         }
         finally
         {

@@ -1,5 +1,4 @@
-using Graber.Application.Enums;
-using Graber.Application.Models;
+using Graber.Application.Errors;
 using Graber.Application.Providers;
 using Graber.Application.UseCases;
 using Graber.Domain.Models;
@@ -47,15 +46,16 @@ public class ProcessUrlUseCaseTest
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
-        Assert.Equal(ScrapingErrorType.ServiceNotSupported, result.Error.Type);
+        Assert.Equal(new PipelineError(PipelineErrorCode.SourceNotSupported), result.Error);
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenScraperFails_ReturnsScraperFailure()
     {
+        var scrapingError = new ScrapingError(ScrapingErrorCode.MediaNotFound);
         var scraperProvider = new ScraperProvider(
         [
-            new StubScraper(true, "TestValue", new ScrapingError(ScrapingErrorType.NotFoundVideo, "Not found video error"))
+            new StubScraper(true, "TestValue", scrapingError)
         ]);
         var downloader = new MediaDownloaderProvider([]);
         var extractor = new StubExtractor();
@@ -65,7 +65,7 @@ public class ProcessUrlUseCaseTest
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
-        Assert.Equal(ScrapingErrorType.NotFoundVideo, result.Error.Type);
+        Assert.Equal(scrapingError, result.Error);
     }
 
     [Fact]
@@ -83,17 +83,18 @@ public class ProcessUrlUseCaseTest
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
-        Assert.Equal(ScrapingErrorType.ServiceNotSupported, result.Error.Type);
+        Assert.Equal(new PipelineError(PipelineErrorCode.DownloadMethodNotSupported), result.Error);
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenDownloaderFails_ReturnsDownloaderFailure()
     {
+        var downloaderError = new DownloadError(DownloadErrorCode.DownloadFailed);
         var scraperProvider = new ScraperProvider(
         [
             new StubScraper(true, TestPlaylistUrl)
         ]);
-        var downloader = new MediaDownloaderProvider([new StubHlsDownloader(true, null, new ScrapingError(ScrapingErrorType.DeleteVideo, "Deleted video error"))]);
+        var downloader = new MediaDownloaderProvider([new StubHlsDownloader(true, null, downloaderError)]);
         var extractor = new StubExtractor();
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
@@ -101,12 +102,13 @@ public class ProcessUrlUseCaseTest
         
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
-        Assert.Equal(ScrapingErrorType.DeleteVideo, result.Error.Type);
+        Assert.Equal(downloaderError, result.Error);
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenExtractorFails_ReturnsExtractorFailureAndDisposesStream()
     {
+        var metadataError = new MetadataError(MetadataErrorCode.ExtractionFailed);
         using var stream = new MemoryStream();
         var metadata = new VideoMetadata("Testname", "mp4", "video/mp4", TimeSpan.FromSeconds(10), 200, 200);
 
@@ -115,7 +117,7 @@ public class ProcessUrlUseCaseTest
             new StubScraper(true, TestPlaylistUrl)
         ]);
         var downloader = new MediaDownloaderProvider([new StubHlsDownloader(true, stream)]);
-        var extractor = new StubExtractor(metadata, new ScrapingError(ScrapingErrorType.NotFoundVideo, "Not found video error"));
+        var extractor = new StubExtractor(metadata, metadataError);
         
         var useCase = new ProcessUrlUseCase(scraperProvider, extractor, downloader);
         var result = await useCase.ExecuteAsync(VideoUrl);
@@ -123,7 +125,7 @@ public class ProcessUrlUseCaseTest
         Assert.False(stream.CanRead);
         Assert.True(result.IsFailure);
         Assert.NotNull(result.Error);
-        Assert.Equal(ScrapingErrorType.NotFoundVideo, result.Error.Type);
+        Assert.Equal(metadataError, result.Error);
     }
 
     [Fact]

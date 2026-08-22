@@ -1,4 +1,5 @@
 using Graber.Application.UseCases;
+using Graber.TelegramBotWorker.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ namespace Graber.TelegramBotWorker;
 public class TelegramBotWorker(
     ITelegramBotClient botClient,
     IServiceScopeFactory scopeFactory,
+    ErrorMessageProvider errorMessageProvider,
     ILogger<TelegramBotWorker> logger) : BackgroundService
 {
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,7 +47,7 @@ public class TelegramBotWorker(
         {
             await client.SendMessage(
                 message.Chat.Id,
-                result.Error!.Message,
+                errorMessageProvider.GetMessage(result.Error),
                 cancellationToken: cancellationToken);
             return;
         }

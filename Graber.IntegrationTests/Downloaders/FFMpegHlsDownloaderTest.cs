@@ -13,6 +13,9 @@ public class FFMpegHlsDownloaderTest
             "https://video.twimg.com/amplify_video/2080134653969674240/pl/slL7C-ESevTgXXL0.m3u8?tag=29&v=cfc");
 
         Assert.True(result.IsSuccess);
-        Assert.True(result.Value.Length > 0);
+
+        await using var value = result.Value;
+        
+        Assert.True(value.Length > 0);
     }
 }

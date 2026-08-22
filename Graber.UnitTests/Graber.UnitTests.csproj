@@ -27,6 +27,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Graber.Application\Graber.Application.csproj" />
       <ProjectReference Include="..\Graber.Infrastructure\Graber.Infrastructure.csproj" />
+      <ProjectReference Include="..\Graber.TelegramBotWorker\Graber.TelegramBotWorker.csproj" />
     </ItemGroup>
 
 </Project>

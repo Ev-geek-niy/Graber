@@ -1,7 +1,8 @@
-using Graber.Application.Enums;
+using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
 using PuppeteerSharp;
+using ScrapingError = Graber.Application.Errors.ScrapingError;
 
 namespace Graber.Infrastructure.Scrapers;
 
@@ -17,9 +18,9 @@ public class XScraper : IScraper
         var playlistUrl = await GetPlaylistUrlAsync(input);
         
         if (playlistUrl.IsFailure)
-            return Result.Failure(playlistUrl.Error);
+            return Result<string>.Failure(playlistUrl.Error);
         
-        return Result.Success(playlistUrl.Value);
+        return Result<string>.Success(playlistUrl.Value);
     }
 
     public async Task<Result<string>> GetPlaylistUrlAsync(string input)
@@ -30,7 +31,7 @@ public class XScraper : IScraper
 
             await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions()
             {
-                Headless = true
+                Headless = false
             });
 
             await using var page = await browser.NewPageAsync();
@@ -48,18 +49,18 @@ public class XScraper : IScraper
 
             if (string.IsNullOrEmpty(playlistUrl))
             {
-                return Result.Failure(ScrapingErrorType.NotFoundVideo);
+                return Result<string>.Failure(new ScrapingError(ScrapingErrorCode.MediaNotFound));
             }
 
-            return Result.Success(playlistUrl);
+            return Result<string>.Success(playlistUrl);
         }
         catch (TimeoutException)
         {
-            return Result.Failure(ScrapingErrorType.NotFoundVideo);
+            return Result<string>.Failure(new ScrapingError(ScrapingErrorCode.MediaNotFound));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Result.Failure(ScrapingErrorType.NetworkError, ex.Message);
+            return Result<string>.Failure(new ScrapingError(ScrapingErrorCode.MediaDiscoveryFailed));
         }
     }
 }

@@ -1,6 +1,4 @@
-using Graber.Application.Enums;
-using Graber.Infrastructure.Downloaders;
-using Graber.Infrastructure.Extractors;
+using Graber.Application.Errors;
 using Graber.Infrastructure.Scrapers;
 
 namespace Graber.IntegrationTests.Scrapers;
@@ -22,8 +20,9 @@ public class XScraperTest
         var xScraper = new XScraper();
         var result = await xScraper.GetPlaylistUrlAsync("https://x.com/philosophymeme0/status/392912");
 
-        Assert.NotNull(result.Error);        
-        Assert.True(result.IsFailure && result.Error.Type == ScrapingErrorType.NotFoundVideo);
+        Assert.True(result.IsFailure);
+        Assert.NotNull(result.Error);
+        Assert.Equal(new ScrapingError(ScrapingErrorCode.MediaNotFound),  result.Error);
     }
 
     [Fact]

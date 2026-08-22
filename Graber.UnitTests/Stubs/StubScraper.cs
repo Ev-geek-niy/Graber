@@ -1,3 +1,4 @@
+using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
 
@@ -6,8 +7,8 @@ namespace Graber.UnitTests;
 public class StubScraper : IScraper
 {
     private bool CanExecuteResult { get; }
-    private string ResultValue { get; }
-    private ScrapingError?  ErrorValue { get; }
+    private string? ResultValue { get; }
+    private Error?  ErrorValue { get; }
     public StubScraper(bool canExecuteResult, string resultValue = "TestValue", ScrapingError? errorValue = null)
     {
         CanExecuteResult = canExecuteResult;
@@ -18,5 +19,7 @@ public class StubScraper : IScraper
     public bool CanExecute(string input) => CanExecuteResult;
 
     public Task<Result<string>> ExecuteAsync(string input) =>
-        Task.FromResult(new Result<string>(ErrorValue is not null,  ResultValue, ErrorValue));
+        Task.FromResult(ErrorValue is null && ResultValue is not null
+            ? Result<string>.Success(ResultValue!)
+            : Result<string>.Failure(ErrorValue!));
 }

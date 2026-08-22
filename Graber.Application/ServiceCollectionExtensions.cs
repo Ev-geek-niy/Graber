@@ -6,12 +6,15 @@ namespace Graber.Application;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplication(this IServiceCollection serviceCollection)
+    extension(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddScoped<ScraperProvider>();
-        serviceCollection.AddScoped<MediaDownloaderProvider>();
-        serviceCollection.AddScoped<ProcessUrlUseCase>();
+        public IServiceCollection AddApplication()
+        {
+            serviceCollection.AddScoped<ScraperProvider>();
+            serviceCollection.AddScoped<MediaDownloaderProvider>();
+            serviceCollection.AddScoped<ProcessUrlUseCase>();
 
-        return serviceCollection;
+            return serviceCollection;
+        }
     }
 }
