@@ -1,14 +1,24 @@
 using Graber.Application.Errors;
+using Graber.Infrastructure.Providers;
 using Graber.Infrastructure.Scrapers;
+using Microsoft.Extensions.Options;
 
 namespace Graber.IntegrationTests.Scrapers;
 
-public class XScraperTest
+public class XScraperTest : IAsyncLifetime
 {
+    private static readonly IOptions<XScraperOptions> options = Options.Create(new XScraperOptions()
+    {
+        Headless = false,
+        PlaylistDiscoveryTimeout = TimeSpan.FromSeconds(10)
+    });
+    
+    private readonly ChromiumBrowserProvider browserProvider = new ChromiumBrowserProvider(options);
+    
     [Fact]
     public async Task XScraper_GetPlaylistUrl_SuccessResult()
     {
-        var xScraper = new XScraper();
+        var xScraper = new XScraper(options, browserProvider);
         var result = await xScraper.GetPlaylistUrlAsync("https://x.com/philosophymeme0/status/2080134676878967139?s=20", CancellationToken.None);
         
         Assert.True(result.IsSuccess);
@@ -17,7 +27,7 @@ public class XScraperTest
     [Fact]
     public async Task XScraper_GetPlaylistUrl_NotFoundResult()
     {
-        var xScraper = new XScraper();
+        var xScraper = new XScraper(options, browserProvider);
         var result = await xScraper.GetPlaylistUrlAsync("https://x.com/philosophymeme0/status/392912", CancellationToken.None);
 
         Assert.True(result.IsFailure);
@@ -28,7 +38,7 @@ public class XScraperTest
     [Fact]
     public async Task XScraper_GetPlaylistUrl_MediaDiscoveryResult()
     {
-        var xScraper = new XScraper();
+        var xScraper = new XScraper(options, browserProvider);
         var result = await xScraper.GetPlaylistUrlAsync("https://127.0.0.1:1", CancellationToken.None);
 
         Assert.True(result.IsFailure);
@@ -39,7 +49,7 @@ public class XScraperTest
     [Fact]
     public async Task XScraper_InspectPlaylist()
     {
-        var xScraper = new XScraper();
+        var xScraper = new XScraper(options, browserProvider);
         var result = await xScraper.GetPlaylistUrlAsync("https://x.com/philosophymeme0/status/2080134676878967139?s=20", CancellationToken.None);
         Assert.True(result.IsSuccess);
         
@@ -59,7 +69,7 @@ public class XScraperTest
     {
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
-        var xScraper = new XScraper();
+        var xScraper = new XScraper(options, browserProvider);
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             xScraper.GetPlaylistUrlAsync("https://x.com/philosophymeme0/status/392912", cts.Token));
@@ -77,5 +87,12 @@ public class XScraperTest
 
         throw new DirectoryNotFoundException(
             "Не удалось найти корень проекта");
+    }
+    
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+    {
+        await browserProvider.DisposeAsync();
     }
 }

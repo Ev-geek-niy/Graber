@@ -1,12 +1,17 @@
 using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
+using Graber.Infrastructure.Providers;
+using Microsoft.Extensions.Options;
 using PuppeteerSharp;
 
 namespace Graber.Infrastructure.Scrapers;
 
-public class XScraper : IScraper
+public class XScraper(
+    IOptions<XScraperOptions> options,
+    ChromiumBrowserProvider browserProvider) : IScraper
 {
+    private readonly XScraperOptions settings = options.Value;
     public bool CanExecute(string input)
     {
         return input.Contains("x.com");
@@ -27,13 +32,7 @@ public class XScraper : IScraper
         
         try
         {
-            await new BrowserFetcher().DownloadAsync();
-
-            await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions()
-            {
-                Headless = false
-            });
-
+            var browser = await browserProvider.GetBrowserAsync(ct);
             await using var page = await browser.NewPageAsync();
 
             var playlistTask = page.WaitForResponseAsync(response =>
@@ -44,7 +43,7 @@ public class XScraper : IScraper
                 WaitUntil = [WaitUntilNavigation.DOMContentLoaded]
             }).WaitAsync(ct);
 
-            var response = await playlistTask.WaitAsync(TimeSpan.FromSeconds(15), ct);
+            var response = await playlistTask.WaitAsync(settings.PlaylistDiscoveryTimeout, ct);
             var playlistUrl = response.Url;
 
             return string.IsNullOrEmpty(playlistUrl) 

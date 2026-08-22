@@ -17,7 +17,7 @@ public class Program
 
         builder.Services
             .AddApplication()
-            .AddInfrastructure()
+            .AddInfrastructure(builder.Configuration)
             .AddPresentation(builder.Configuration);
 
         await builder.Build().RunAsync();
