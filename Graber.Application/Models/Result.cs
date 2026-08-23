@@ -1,33 +1,36 @@
-﻿using Graber.Application.Enums;
+﻿using Graber.Application.Errors;
 
 namespace Graber.Application.Models;
 
-public class Result<T>
+public sealed class Result<T>
 {
-    public bool IsFailure { get; init; }
-    public bool IsSuccess => !IsFailure;
-    public T Value { get; }
-    public ScrapingError? Error { get; init; }
+    private readonly T? _value;
+    private readonly Error? _error;
 
-    internal Result(bool isFailure, T value, ScrapingError? error)
-    {
-        IsFailure = isFailure;
-        Value = value;
-        Error = error;
-    }
+    public T Value => IsSuccess
+        ? _value!
+        : throw new InvalidOperationException();
     
-    public static implicit operator Result<T>(Failure failure) => new(true, default(T), failure.Error);
+    public Error Error => IsFailure 
+        ? _error!
+        : throw new InvalidOperationException();
+    
+    public bool IsSuccess => _error is null;
+    public bool IsFailure => !IsSuccess;
+
+    private Result(T value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        _value = value;
+    }
+
+    private Result(Error error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+        _error = error;
+    }
+
+    public static Result<T> Success(T value) => new Result<T>(value);
+    public static Result<T> Failure(Error error) => new Result<T>(error);
 }
 
-public static class Result
-{
-    public static Failure Failure(ScrapingErrorType type) => new(type);
-    public static Failure Failure(ScrapingErrorType type, string message) => new(type, message);
-    public static Result<T> Success<T>(T value) => new(false, value, null);
-}
-
-public class Failure(ScrapingErrorType type, string message)
-{
-    public ScrapingError Error { get; init; } = new(type, message);
-    public Failure(ScrapingErrorType type) : this(type, "проверка"){}
-}

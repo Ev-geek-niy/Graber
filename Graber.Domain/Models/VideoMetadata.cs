@@ -6,7 +6,7 @@ public record VideoMetadata(
     string FileName,
     string Extension,
     string? MimeType,
-    double Duration,
+    TimeSpan Duration,
     double Width,
     double Height
 ) : RecordWithValidation
@@ -17,8 +17,8 @@ public record VideoMetadata(
             throw new ArgumentNullException($"{nameof(FileName)} cannot be null or empty.");
         if (string.IsNullOrEmpty(Extension))
             throw new ArgumentNullException($"{nameof(Extension)} cannot be null or empty.");
-        if (Duration < 0)
-            throw new ArgumentOutOfRangeException($"{nameof(Duration)} cannot be negative.");
+        //if (Duration.CompareTo(0) == 1)
+          //  throw new ArgumentOutOfRangeException($"{nameof(Duration)} cannot be negative.");
         if (Width < 0)
             throw new ArgumentOutOfRangeException($"{nameof(Width)} cannot be negative.");
         if (Height < 0)
