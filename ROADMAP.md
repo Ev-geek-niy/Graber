@@ -45,6 +45,18 @@
 
 ## Completed
 
+### Создать и опубликовать Docker image
+
+- добавлен multi-stage `Dockerfile` на .NET 10 и Alpine для restore, publish и минимального runtime image;
+- в runtime image установлены Chromium, FFmpeg, FFprobe и `tini`, приложение запускается от непривилегированного пользователя `app`;
+- production-конфигурация и Telegram token передаются через environment variables, а системный Chromium используется без скачивания при старте контейнера;
+- `.dockerignore` исключает токены, локальные настройки, build artifacts, тестовые fixtures и research-артефакты из build context;
+- локально проверены startup, headless HLS discovery, скачивание, metadata extraction и Telegram delivery внутри контейнера;
+- для headless Chromium настроен совместимый User-Agent, а требование `SYS_ADMIN` для sandbox зафиксировано в документации запуска;
+- multi-platform image опубликован в [Docker Hub](https://hub.docker.com/r/evgeekniy/graber) для `linux/amd64` и `linux/arm64` с тегами `latest` и `0.1.0`;
+- команды запуска, локальной сборки, проверки manifest и публикации следующей версии документированы в `README.md`;
+- после каждого завершённого roadmap-этапа `latest` обновляется вместе с новым неизменяемым version tag.
+
 ### Сделать HLS discovery устойчивым
 
 - timeout ожидания playlist и headless mode вынесены в типизированную конфигурацию `XScraperOptions`;
