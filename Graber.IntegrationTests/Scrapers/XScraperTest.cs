@@ -9,7 +9,7 @@ public class XScraperTest : IAsyncLifetime
 {
     private static readonly IOptions<XScraperOptions> options = Options.Create(new XScraperOptions()
     {
-        Headless = true,
+        Headless = false,
         PlaylistDiscoveryTimeout = TimeSpan.FromSeconds(10)
     });
     
