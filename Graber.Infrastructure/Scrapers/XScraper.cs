@@ -34,6 +34,8 @@ public class XScraper(
         {
             var browser = await browserProvider.GetBrowserAsync(ct);
             await using var page = await browser.NewPageAsync();
+            var userAgent = await browser.GetUserAgentAsync();
+            await page.SetUserAgentAsync(userAgent.Replace("Headless", ""));
 
             var playlistTask = page.WaitForResponseAsync(response =>
                 response.Url.Contains(".m3u8", StringComparison.OrdinalIgnoreCase));

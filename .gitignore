@@ -139,3 +139,6 @@ _NCrunch*
 
 # Local research artifacts
 .research/
+
+.env
+.env.*

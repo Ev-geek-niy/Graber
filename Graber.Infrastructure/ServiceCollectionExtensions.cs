@@ -21,6 +21,16 @@ public static class ServiceCollectionExtensions
                 .Validate(
                     options => options.PlaylistDiscoveryTimeout > TimeSpan.Zero,
                     "XScraper playlist discovery timeout must be greater than zero.")
+                .Validate(
+                    options =>
+                    {
+                        if (options.BrowserExecutablePath is null) return true;
+                        
+                        if (options.BrowserExecutablePath.Trim().Length == 0) return false;
+                        
+                        return File.Exists(options.BrowserExecutablePath);
+                    },
+                    "XScraper browser executable not found.")
                 .ValidateOnStart();
             
             services.AddScoped<IScraper, XScraper>();

@@ -31,14 +31,24 @@ public sealed class ChromiumBrowserProvider(
             }
             
             cancellationToken.ThrowIfCancellationRequested();
-            
-            await new BrowserFetcher().DownloadAsync();
-            
-            cancellationToken.ThrowIfCancellationRequested();
-            browser = await Puppeteer.LaunchAsync(new LaunchOptions
+
+            if (_settings.BrowserExecutablePath is not null)
             {
-                Headless = _settings.Headless
-            });
+                browser = await Puppeteer.LaunchAsync(new LaunchOptions()
+                {
+                    Headless = _settings.Headless,
+                    ExecutablePath = _settings.BrowserExecutablePath
+                });
+            }
+            else
+            {
+                await new BrowserFetcher().DownloadAsync();
+                cancellationToken.ThrowIfCancellationRequested();
+                browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                {
+                    Headless = _settings.Headless,
+                });
+            }
             
             return browser;
         }
