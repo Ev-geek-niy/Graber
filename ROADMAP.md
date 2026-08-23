@@ -1,0 +1,130 @@
+# Graber Roadmap
+
+## Next
+
+### Реализовать выбор низкого/среднего качества
+
+- применить правило, подтверждённое исследованием HLS;
+- предпочитать рациональный профиль вместо максимального;
+- предусмотреть fallback на профиль ниже;
+- покрыть выбор профиля unit-тестами на локальных playlist fixtures;
+- не размещать общую HLS-логику внутри `XScraper`.
+
+### Ограничить размер и потребление ресурсов
+
+- определить максимальный допустимый размер видео;
+- не допускать неконтролируемого роста `MemoryStream`;
+- определить способ предварительной оценки или контролируемого прерывания загрузки;
+- гарантировать освобождение ресурсов при контролируемом прерывании по лимиту размера;
+- отдельно исследовать способы ускорения скачивания.
+
+### Доработать MetadataExtractor
+
+- поддержать отсутствие video stream;
+- поддержать отсутствие audio stream;
+- корректно обрабатывать несколько video/audio streams;
+- разделить container format, extension и MIME type;
+- уточнить классификацию и логирование ошибок;
+- добавить integration fixtures для разных наборов потоков.
+
+### Перейти на Telegram video delivery
+
+- отправлять результат как video, а не document;
+- проверить встроенное воспроизведение и автопроигрывание коротких видео;
+- проверить пригодность MP4 для streaming playback;
+- использовать доступную metadata при отправке;
+- корректно обрабатывать превышение установленного размера.
+
+### Разделить стабильные и внешние тесты
+
+- оставить unit-тесты независимыми от сети;
+- использовать локальные fixtures для HLS parsing и выбора качества;
+- маркировать тесты с живыми X/CDN URL как external integration tests;
+- не запускать внешние тесты в стандартном быстром наборе;
+- документировать требования к Chromium, FFmpeg, FFprobe и сети.
+
+## Completed
+
+### Создать и опубликовать Docker image
+
+- добавлен multi-stage `Dockerfile` на .NET 10 и Alpine для restore, publish и минимального runtime image;
+- в runtime image установлены Chromium, FFmpeg, FFprobe и `tini`, приложение запускается от непривилегированного пользователя `app`;
+- production-конфигурация и Telegram token передаются через environment variables, а системный Chromium используется без скачивания при старте контейнера;
+- `.dockerignore` исключает токены, локальные настройки, build artifacts, тестовые fixtures и research-артефакты из build context;
+- локально проверены startup, headless HLS discovery, скачивание, metadata extraction и Telegram delivery внутри контейнера;
+- для headless Chromium настроен совместимый User-Agent, а требование `SYS_ADMIN` для sandbox зафиксировано в документации запуска;
+- multi-platform image опубликован в [Docker Hub](https://hub.docker.com/r/evgeekniy/graber) для `linux/amd64` и `linux/arm64` с тегами `latest` и `0.1.0`;
+- команды запуска, локальной сборки, проверки manifest и публикации следующей версии документированы в `README.md`;
+- после каждого завершённого roadmap-этапа `latest` обновляется вместе с новым неизменяемым version tag.
+
+### Сделать HLS discovery устойчивым
+
+- timeout ожидания playlist и headless mode вынесены в типизированную конфигурацию `XScraperOptions`;
+- timeout валидируется при запуске приложения, а production-конфигурация использует headless mode;
+- владение Chromium вынесено в singleton `ChromiumBrowserProvider`, который потокобезопасно инициализирует и переиспользует browser;
+- provider асинхронно закрывает browser при завершении приложения и запрещает использование после начала disposal;
+- `XScraper` создаёт и освобождает отдельную page для каждого запроса, не управляя жизненным циклом browser;
+- сохранена семантика discovery: открытая страница без `.m3u8` возвращает `MediaNotFound`, а сбой навигации — `MediaDiscoveryFailed`;
+- binding, validation, конкурентная инициализация и disposal покрыты unit- и integration-тестами.
+
+### Уточнить обработку исключений и отмены
+
+- ожидаемые сбои Puppeteer, FFmpeg и FFprobe ограничены конкретными типами исключений и преобразуются в соответствующий `Result.Failure`;
+- ошибки программирования и конфигурации не скрываются общими обработчиками;
+- `OperationCanceledException` не преобразуется в failure;
+- `CancellationToken` проведён от Telegram handler через весь media pipeline;
+- FFmpeg и FFprobe получают токен отмены, а навигация и ожидание playlist поддерживают cancellation;
+- media buffer, media stream, browser и page освобождаются при failure, exception и cancellation;
+- сценарии failure, exception и cancellation покрыты unit- и integration-тестами.
+
+### Переработать модель Result и ошибок
+
+- определены взаимоисключающие состояния `Success(value)` и `Failure(error)`;
+- исключены success без value и failure без error;
+- создание результата ограничено фабриками `Success` и `Failure`;
+- ошибки разделены на pipeline, scraping, download и metadata категории;
+- пользовательские сообщения вынесены в Presentation и централизованы в `ErrorMessageProvider`;
+- передача ошибок, mapping сообщений и инварианты результата покрыты unit-тестами;
+- stubs, use case, Infrastructure и Presentation переведены на новый контракт.
+
+### Обеспечить владение и освобождение media stream
+
+- downloader передаёт поток вызывающей стороне только при success;
+- `ProcessUrlUseCase` освобождает поток при failure или исключении metadata extraction;
+- Telegram worker освобождает поток после отправки;
+- downloader освобождает частично созданный буфер при собственной ошибке;
+- создание буфера вынесено в `IMediaBufferFactory` с Infrastructure-реализацией;
+- success, передача владения и освобождение при ошибках покрыты тестами.
+
+### Перенести orchestration media pipeline в Application
+
+- scraper отвечает за обнаружение источника конкретного сервиса;
+- `MediaDownloaderProvider` выбирает подходящий downloader;
+- `ProcessUrlUseCase` координирует scraping, скачивание, metadata extraction и сборку `Video`;
+- поток передаётся вызывающей стороне при успехе и освобождается при ошибке metadata extraction или исключении;
+- основные успешные и негативные ветки use case покрыты проходящими unit-тестами.
+
+### Исследовать фактически получаемый HLS playlist
+
+Подтверждено на нескольких работающих публикациях X:
+
+- `XScraper` перехватывает master playlist с тегами `#EXT-X-STREAM-INF`;
+- варианты содержат `RESOLUTION`, `AVERAGE-BANDWIDTH`, `BANDWIDTH`, `CODECS` и ссылку на audio group;
+- ссылки на video и audio media playlists могут быть относительными;
+- при передаче master playlist текущий FFmpeg pipeline выбирает максимальный доступный профиль;
+- для явного выбора качества нужен отдельный HLS parser/resolver вне `XScraper`.
+
+Минимальная политика низкого/среднего качества:
+
+1. Сортировать video-варианты по `AVERAGE-BANDWIDTH`, а при его отсутствии — по `BANDWIDTH`.
+2. Выбирать средний вариант; при чётном количестве — нижний из двух средних.
+3. Если выбранный вариант недоступен, последовательно пробовать варианты ниже.
+
+На исследованном master playlist с профилями `276x270`, `368x360` и `720x702` правило выбирает `368x360`.
+
+## Later
+
+- исследовать ускорение скачивания после появления измеряемого baseline;
+- расширять список сервисов через дополнительные scraper-реализации;
+- пересмотреть размещение `VideoMetadata`, когда появятся реальные доменные правила;
+- улучшить Telegram UX: валидация ввода, статус обработки и локализация ошибок.
