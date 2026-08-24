@@ -30,4 +30,8 @@
       <ProjectReference Include="..\Graber.TelegramBotWorker\Graber.TelegramBotWorker.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Fixtures\Hls\" />
+    </ItemGroup>
+
 </Project>
