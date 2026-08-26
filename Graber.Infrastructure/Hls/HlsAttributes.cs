@@ -117,13 +117,13 @@ internal sealed class HlsAttributes
         var values = resolutionString.Split("x");
         
         if (values.Length != 2)
-            throw new FormatException($"{Tag} attribute {key} must contain 2 values");
+            throw new FormatException($"{Tag} attribute {key} must contain 2 values.");
         if (!int.TryParse(values[0], CultureInfo.InvariantCulture, out var width) || 
             !int.TryParse(values[1], CultureInfo.InvariantCulture, out var height))
-            throw new FormatException($"{Tag} attribute {key} values {resolutionString} must be integers.");
+            throw new FormatException($"{Tag} attribute {key} values '{resolutionString}' must be integers.");
         
         if (width <= 0 || height <= 0)
-            throw new FormatException($"{Tag} attribute {key} values {resolutionString} must be greater than zero.");
+            throw new FormatException($"{Tag} attribute {key} values '{resolutionString}' must be greater than zero.");
         
         return new Resolution {Width = width, Height = height};
     }
