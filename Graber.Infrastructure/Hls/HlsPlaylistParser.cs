@@ -1,85 +1,78 @@
-using System.Text.RegularExpressions;
-
 namespace Graber.Infrastructure.Hls;
 
 public class HlsPlaylistParser
 {
-    private readonly Regex attributeRegex = new Regex("""(?<name>[A-Z0-9-]+)=(?:"(?<quotedValue>[^"]*)"|(?<value>[^,]*))""");
     public HlsMasterPlaylist Parse(string playlistContent, Uri playlistUrl)
     {
-        var audioGroups = new List<Dictionary<string, string>>();
-        var videoGroups = new List<Dictionary<string, string>>();
-        var videoGroupPreviousLine = false;
+        if (!playlistContent.StartsWith("#EXTM3U"))
+            throw new FormatException("HLS playlist content must start with '#EXTM3U'.");
         
+        var hlsVariants = new List<HlsVariant>();
+        var audioRenditions = new List<AudioRendition>();
+
         var lines = playlistContent.Split("\n");
-        foreach (var line in lines)
+
+        for (int i = 0; i < lines.Length; i++)
         {
-            if (DefineType(line) == HlsTypeEnum.Audio)
-                audioGroups.Add(ParseAttributes(line));
-            else if (DefineType(line) == HlsTypeEnum.Video)
+            if (string.IsNullOrWhiteSpace(lines[i]))
+                continue;
+            
+            var attributes = HlsAttributes.Parse(lines[i]);
+            switch (attributes.Tag)
             {
-                videoGroups.Add(ParseAttributes(line));
-                videoGroupPreviousLine = true;
-            }
-            else if (videoGroupPreviousLine)
-            {
-                var videoGroup = videoGroups.LastOrDefault();
-                videoGroup?.TryAdd("URI", line);
-                videoGroupPreviousLine = false;
+                case "#EXT-X-MEDIA":
+                    if (attributes.RequiredString("TYPE") != "AUDIO")
+                        continue;
+                    audioRenditions.Add(new AudioRendition
+                    {
+                        GroupId = attributes.RequiredString("GROUP-ID"),
+                        Uri = attributes.RequiredUri("URI"),
+                        Name = attributes.OptionalString("NAME"),
+                        AutoSelect = attributes.OptionalYesNo("AUTOSELECT"),
+                        IsDefault = attributes.OptionalYesNo("DEFAULT"),
+                        Language = attributes.OptionalString("LANGUAGE"),
+                    });
+                    break;
+
+                case "#EXT-X-STREAM-INF":
+                    if (i + 1 >= lines.Length)
+                        throw new FormatException("Unexpected end of file.");
+
+                    if (string.IsNullOrWhiteSpace(lines[i + 1]))
+                        throw new FormatException("Line must not be empty.");
+                    
+                    if (lines[i + 1].Trim().StartsWith('#'))
+                        throw new FormatException("Line must not start with '#'.");
+                    
+                    if (!Uri.TryCreate(lines[i + 1].Trim(), UriKind.RelativeOrAbsolute, out var variantUri))
+                        throw new FormatException($"Next line of file must be an URI. Next line: {lines[i + 1]}");
+
+                    hlsVariants.Add(new()
+                    {
+                        VideoUrl = variantUri,
+                        AudioGroupId = attributes.OptionalString("AUDIO"),
+                        AverageBandwidth = attributes.OptionalPositiveInt("AVERAGE-BANDWIDTH"),
+                        Bandwidth = attributes.RequiredPositiveInt("BANDWIDTH"),
+                        Codecs = attributes.OptionalString("CODECS")?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries),
+                        Resolution = attributes.OptionalResolution("RESOLUTION")
+                    });
+
+                    // Skip uri line
+                    i += 1;
+                    break;
+                default:
+                    continue;
             }
         }
-
-        var variants = videoGroups
-            .Select(videoGroup =>
-            {
-                var audio = audioGroups.Find(audioGroup => videoGroup["AUDIO"] == audioGroup["GROUP-ID"]);
-                return new HlsVariant()
-                {
-                    AbsoluteAudioUrl = new Uri(audio.GetValueOrDefault("URI")),
-                    AbsoluteVideoUrl = new Uri(videoGroup.GetValueOrDefault("URI")),
-                    AverageBandwidth = int.Parse(videoGroup.GetValueOrDefault("AVERAGE-BANDWIDTH")),
-                    Bandwidth = int.Parse(videoGroup.GetValueOrDefault("BANDWIDTH")),
-                    Codecs = videoGroup.GetValueOrDefault("CODECS").Split(","),
-                    Height = int.Parse(videoGroup.GetValueOrDefault("HEIGHT")),
-                    Width = int.Parse(videoGroup.GetValueOrDefault("WIDTH")),
-                };
-            });
-
+        
         return new HlsMasterPlaylist()
         {
-            Variants = variants,
+            Variants = hlsVariants,
+            AudioRenditions = audioRenditions,
             PlaylistUrl = playlistUrl,
         };
     }
-
-    private Dictionary<string, string> ParseAttributes(string playlistContentLine)
-    {
-        var attributes = new Dictionary<string, string>();
-        var matches = attributeRegex.Matches(playlistContentLine);
-        foreach (Match match in matches)
-        {
-            if (match.Groups["quotedValue"].Success)
-                attributes.TryAdd(match.Groups["name"].Value, match.Groups["quotedValue"].Value);
-            if (match.Groups["value"].Success)
-                attributes.TryAdd(match.Groups["name"].Value, match.Groups["value"].Value);
-        }
-        
-        return attributes;
-    }
-
-    private HlsTypeEnum DefineType(string playlist)
-    {
-        if (playlist.StartsWith("#EXT-X-MEDIA")) return HlsTypeEnum.Audio;
-        if (playlist.StartsWith("#EXT-X-STREAM-INF")) return HlsTypeEnum.Video;
-
-        return HlsTypeEnum.None;
-    }
-    
-    private enum HlsTypeEnum
-    {
-        None,
-        Audio,
-        Video
-    } 
 }
+
+
 
