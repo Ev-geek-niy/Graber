@@ -156,6 +156,21 @@ public class HlsPlaylistParserTest
         
         Assert.Equal("#EXT-X-STREAM-INF attribute AVERAGE-BANDWIDTH must be greater than 0.", exception.Message);
     }
+    
+    [Fact]
+    public void Parse_WhenAverageBandwidthIsInvalidType_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=abc,BANDWIDTH=10,RESOLUTION=100x100
+                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+        
+        Assert.Equal("#EXT-X-STREAM-INF attribute AVERAGE-BANDWIDTH must be an integer.", exception.Message);
+    }
 
     [Fact]
     public void Parse_WhenBandwidthIsZero_ThrowsFormatException()
@@ -185,6 +200,36 @@ public class HlsPlaylistParserTest
         var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
 
         Assert.Equal("#EXT-X-STREAM-INF attribute BANDWIDTH must be greater than 0.", exception.Message);
+    }
+    
+    [Fact]
+    public void Parse_WhenBandwidthIsNotExists_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,RESOLUTION=100x100
+                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal("#EXT-X-STREAM-INF attribute BANDWIDTH is required.", exception.Message);
+    }
+    
+    [Fact]
+    public void Parse_WhenBandwidthIsNotInteger_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:BANDWIDTH="abcd",RESOLUTION=100x100
+                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal("#EXT-X-STREAM-INF attribute BANDWIDTH must be an integer.", exception.Message);
     }
 
     [Fact]
@@ -275,4 +320,118 @@ public class HlsPlaylistParserTest
 
         Assert.Equal("HLS playlist content must start with '#EXTM3U'.", exception.Message);
     }
+
+    [Fact]
+    public void Parse_WhenRequiredStringIsNotExists_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/128000/fpzyuyxNwT8BA3E3.m3u8"
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal($"{AudioTag} attribute GROUP-ID is required.", exception.Message);
+    }
+    
+    [Fact]
+    public void Parse_WhenRequiredStringIsNull_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="",AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/128000/fpzyuyxNwT8BA3E3.m3u8"
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal($"{AudioTag} attribute GROUP-ID must not be null or whitespace.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_WhenRequiredStringIsWhitespace_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="   ",AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/128000/fpzyuyxNwT8BA3E3.m3u8"
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal($"{AudioTag} attribute GROUP-ID must not be null or whitespace.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_WhenFileDoesNotHaveTag_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/128000/fpzyuyxNwT8BA3E3.m3u8"
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal("Line does not contain a valid HLS tag.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_WhenHlsVariantHasEmptyNextLine_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100x-100
+                              
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal("Line must not be empty.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_WhenAudioRenditionHasNoUri_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal($"{AudioTag} attribute URI is required.", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_WhenAudioRenditionHasEmptyUri_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES,URI=""
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal($"{AudioTag} attribute URI must not be empty.", exception.Message);
+    }
+    
+    [Fact]
+    public void Parse_WhenAudioRenditionHasWhitespaceUri_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES,URI="   "
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal($"{AudioTag} attribute URI must not be empty.", exception.Message);
+    }
+    
 }

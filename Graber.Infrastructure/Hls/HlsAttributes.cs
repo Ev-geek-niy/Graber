@@ -59,7 +59,7 @@ internal sealed class HlsAttributes
             throw new FormatException($"{Tag} attribute {key} is required.");
 
         if (!int.TryParse(value, CultureInfo.InvariantCulture, out var result))
-            throw new FormatException($"Value of {key} attribute must be an integer.");
+            throw new FormatException($"{Tag} attribute {key} must be an integer.");
         
         return result;
     }
