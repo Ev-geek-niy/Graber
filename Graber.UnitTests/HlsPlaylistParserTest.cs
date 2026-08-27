@@ -433,5 +433,33 @@ public class HlsPlaylistParserTest
 
         Assert.Equal($"{AudioTag} attribute URI must not be empty.", exception.Message);
     }
+
+    [Fact]
+    public void Parse_WhenEndOfFileAfterHslVariantLine_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100x-100
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal("Unexpected end of file.", exception.Message);
+    }
     
+    [Fact]
+    public void Parse_WhenWrongLink_ThrowsFormatException()
+    {
+        var playlistContent = """
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100x-100
+                              #amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
+                              """;
+        var parser = new HlsPlaylistParser();
+
+        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+
+        Assert.Equal("Line must not start with '#'.", exception.Message);
+    }
 }
