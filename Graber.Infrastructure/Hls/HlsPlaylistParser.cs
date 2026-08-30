@@ -2,17 +2,21 @@ namespace Graber.Infrastructure.Hls;
 
 public class HlsPlaylistParser
 {
+    private const string PlaylistHeader = "#EXTM3U";
+    private const string VideoTag = "#EXT-X-STREAM-INF";
+    private const string MediaTag = "#EXT-X-MEDIA";
+
     public HlsMasterPlaylist Parse(string playlistContent, Uri playlistUrl)
     {
-        if (!playlistContent.StartsWith("#EXTM3U"))
-            throw new FormatException("HLS playlist content must start with '#EXTM3U'.");
-        
         var hlsVariants = new List<HlsVariant>();
         var audioRenditions = new List<AudioRendition>();
 
         var lines = playlistContent.Split("\n");
+        
+        if (lines.FirstOrDefault()?.Trim() != PlaylistHeader)
+            throw new FormatException($"HLS playlist content must start with '{PlaylistHeader}'.");
 
-        for (int i = 0; i < lines.Length; i++)
+        for (int i = 1; i < lines.Length; i++)
         {
             if (string.IsNullOrWhiteSpace(lines[i]))
                 continue;
@@ -20,7 +24,7 @@ public class HlsPlaylistParser
             var attributes = HlsAttributes.Parse(lines[i]);
             switch (attributes.Tag)
             {
-                case "#EXT-X-MEDIA":
+                case MediaTag:
                     if (attributes.RequiredString("TYPE") != "AUDIO")
                         continue;
                     audioRenditions.Add(new AudioRendition
@@ -34,7 +38,7 @@ public class HlsPlaylistParser
                     });
                     break;
 
-                case "#EXT-X-STREAM-INF":
+                case VideoTag:
                     if (i + 1 >= lines.Length)
                         throw new FormatException("Unexpected end of file.");
 
@@ -64,6 +68,9 @@ public class HlsPlaylistParser
                     continue;
             }
         }
+        
+        if (hlsVariants.Count == 0)
+            throw new FormatException($"HLS playlist content must contain at least one '{VideoTag}'.");
         
         return new HlsMasterPlaylist()
         {
