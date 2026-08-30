@@ -5,8 +5,6 @@ namespace Graber.UnitTests;
 public class HlsPlaylistParserTest
 {
     private Uri PlaylistUri => new Uri("https://video.twimg.com/amplify_video/2080134653969674240/pl/slL7C-ESevTgXXL0.m3u8?tag=29&v=cfc",  UriKind.Absolute);
-    private const string VideoTag = "#EXT-X-STREAM-INF";
-    private const string AudioTag = "#EXT-X-MEDIA";
     
     [Fact]
     public async Task Parse_WhenPlaylistHave3Variants_Return3Variants()
@@ -127,186 +125,59 @@ public class HlsPlaylistParserTest
         Assert.Null(hlsVariant.AudioGroupId);
     }
 
-    [Fact]
-    public void Parse_WhenAverageBandwidthIsZero_ThrowsFormatException()
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-100")]
+    [InlineData("abc")]
+    
+    public void Parse_WhenAverageBandwidth_ThrowsFormatException(string averageBandwidth)
     {
-        var playlistContent = """
-                         #EXTM3U
-                         #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=0,BANDWIDTH=10,RESOLUTION=100x100
-                         /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                         """;
+        var playlistContent = $"""
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH={averageBandwidth},BANDWIDTH=10,RESOLUTION=100x100
+                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
+                              """;
         var parser = new HlsPlaylistParser();
 
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+        Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-100")]
+    [InlineData("abc")]
+    [InlineData(null)]
+    public void Parse_WhenBandwidth_ThrowsFormatException(string? bandwidth)
+    {
+        var playlistContent = $"""
+                               #EXTM3U
+                               #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=1000,BANDWIDTH={bandwidth},RESOLUTION=100x100
+                               /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
+                               """;
+        var parser = new HlsPlaylistParser();
+
+        Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
+    }
+
+    [Theory]
+    [InlineData("123")]
+    [InlineData("abcx123")]
+    [InlineData("123xabc")]
+    [InlineData("-123x123")]
+    [InlineData("123x-123")]
+    
+    public void Parse_WhenResolution_ThrowsFormatException(string resolution)
+    {
+        var playlistContent = $"""
+                              #EXTM3U
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION={resolution}
+                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
+                              """;
+        var parser = new HlsPlaylistParser();
         
-        Assert.Equal("#EXT-X-STREAM-INF attribute AVERAGE-BANDWIDTH must be greater than 0.", exception.Message);
-    }
-
-    [Fact]
-    public void Parse_WhenAverageBandwidthIsNegative_ThrowsFormatException()
-    {
-        var playlistContent = """
-                         #EXTM3U
-                         #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=-10,BANDWIDTH=10,RESOLUTION=100x100
-                         /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                         """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-        
-        Assert.Equal("#EXT-X-STREAM-INF attribute AVERAGE-BANDWIDTH must be greater than 0.", exception.Message);
+        Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
     }
     
-    [Fact]
-    public void Parse_WhenAverageBandwidthIsInvalidType_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=abc,BANDWIDTH=10,RESOLUTION=100x100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-        
-        Assert.Equal("#EXT-X-STREAM-INF attribute AVERAGE-BANDWIDTH must be an integer.", exception.Message);
-    }
-
-    [Fact]
-    public void Parse_WhenBandwidthIsZero_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=0,RESOLUTION=100x100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute BANDWIDTH must be greater than 0.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenBandwidthIsNegative_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=-10,RESOLUTION=100x100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute BANDWIDTH must be greater than 0.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenBandwidthIsNotExists_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,RESOLUTION=100x100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute BANDWIDTH is required.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenBandwidthIsNotInteger_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:BANDWIDTH="abcd",RESOLUTION=100x100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute BANDWIDTH must be an integer.", exception.Message);
-    }
-
-    [Fact]
-    public void Parse_WhenResolutionHasOneValue_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=asd100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute RESOLUTION must contain 2 values.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenResolutionHasFirstInvalidValue_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=asdx100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute RESOLUTION values 'asdx100' must be integers.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenResolutionHasSecondInvalidValue_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100xqqq
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute RESOLUTION values '100xqqq' must be integers.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenResolutionHasFirstNegativeValue_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=-100x100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute RESOLUTION values '-100x100' must be greater than zero.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenResolutionHaSecondNegativeValue_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100x-100
-                              /amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("#EXT-X-STREAM-INF attribute RESOLUTION values '100x-100' must be greater than zero.", exception.Message);
-    }
-
     [Fact]
     public void Parse_WhenNoStartingTag_ThrowsFormatException()
     {
@@ -320,51 +191,26 @@ public class HlsPlaylistParserTest
 
         Assert.Equal("HLS playlist content must start with '#EXTM3U'.", exception.Message);
     }
-
-    [Fact]
-    public void Parse_WhenRequiredStringIsNotExists_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/128000/fpzyuyxNwT8BA3E3.m3u8"
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal($"{AudioTag} attribute GROUP-ID is required.", exception.Message);
-    }
     
-    [Fact]
-    public void Parse_WhenRequiredStringIsNull_ThrowsFormatException()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    [InlineData("GROUP-ID=")]
+    [InlineData("GROUP-ID=\"\"")]
+    public void Parse_WhenAudioRendintionGroupIdDoesNotExist_ThrowsFormatException(string? requiredString)
     {
-        var playlistContent = """
+        var playlistContent = $"""
                               #EXTM3U
-                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="",AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/128000/fpzyuyxNwT8BA3E3.m3u8"
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,{requiredString},AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/32000/is8JNmTlua5W6KJw.m3u8"
                               """;
         var parser = new HlsPlaylistParser();
 
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal($"{AudioTag} attribute GROUP-ID must not be null or whitespace.", exception.Message);
+        Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
     }
 
     [Fact]
-    public void Parse_WhenRequiredStringIsWhitespace_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="   ",AUTOSELECT=YES,URI="/amplify_video/2080134653969674240/pl/mp4a/128000/fpzyuyxNwT8BA3E3.m3u8"
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal($"{AudioTag} attribute GROUP-ID must not be null or whitespace.", exception.Message);
-    }
-
-    [Fact]
-    public void Parse_WhenFileDoesNotHaveTag_ThrowsFormatException()
+    public void Parse_WhenFileDoesNotHasTag_ThrowsFormatException()
     {
         var playlistContent = """
                               #EXTM3U
@@ -377,89 +223,39 @@ public class HlsPlaylistParserTest
         Assert.Equal("Line does not contain a valid HLS tag.", exception.Message);
     }
 
-    [Fact]
-    public void Parse_WhenHlsVariantHasEmptyNextLine_ThrowsFormatException()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    [InlineData("\n")]
+    [InlineData("#amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8")]
+    public void Parse_WhenHlsVariantUri_ThrowsFormatException(string? hlsVariantUri)
     {
-        var playlistContent = """
+        var playlistContent = $"""
                               #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100x-100
-                              
+                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=81403,BANDWIDTH=88937,RESOLUTION=276x270,CODECS="mp4a.40.2,avc1.4D400D",AUDIO="audio-32000"
+                              {hlsVariantUri}
                               """;
         var parser = new HlsPlaylistParser();
 
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("Line must not be empty.", exception.Message);
-    }
-
-    [Fact]
-    public void Parse_WhenAudioRenditionHasNoUri_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal($"{AudioTag} attribute URI is required.", exception.Message);
-    }
-
-    [Fact]
-    public void Parse_WhenAudioRenditionHasEmptyUri_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES,URI=""
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal($"{AudioTag} attribute URI must not be empty.", exception.Message);
+        Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
     }
     
-    [Fact]
-    public void Parse_WhenAudioRenditionHasWhitespaceUri_ThrowsFormatException()
+    [Theory]
+    [InlineData("URI=")]
+    [InlineData("URI=\"\"")]
+    [InlineData("URI=    ")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("    ")]
+    public void Parse_WhenAudioRenditionUri_ThrowsFormatException(string? audioRenditionUri)
     {
-        var playlistContent = """
+        var playlistContent = $"""
                               #EXTM3U
-                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES,URI="   "
+                              #EXT-X-MEDIA:NAME="Audio",TYPE=AUDIO,GROUP-ID="audio-128000",AUTOSELECT=YES,{audioRenditionUri}
                               """;
         var parser = new HlsPlaylistParser();
 
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal($"{AudioTag} attribute URI must not be empty.", exception.Message);
-    }
-
-    [Fact]
-    public void Parse_WhenEndOfFileAfterHslVariantLine_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100x-100
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("Unexpected end of file.", exception.Message);
-    }
-    
-    [Fact]
-    public void Parse_WhenWrongLink_ThrowsFormatException()
-    {
-        var playlistContent = """
-                              #EXTM3U
-                              #EXT-X-STREAM-INF:AVERAGE-BANDWIDTH=10,BANDWIDTH=10,RESOLUTION=100x-100
-                              #amplify_video/2080134653969674240/pl/avc1/276x270/uysqztpZbewRDxv8.m3u8
-                              """;
-        var parser = new HlsPlaylistParser();
-
-        var exception = Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
-
-        Assert.Equal("Line must not start with '#'.", exception.Message);
+        Assert.Throws<FormatException>(() => parser.Parse(playlistContent, PlaylistUri));
     }
 }
