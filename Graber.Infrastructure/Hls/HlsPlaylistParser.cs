@@ -1,3 +1,5 @@
+using Graber.Infrastructure.Hls.Models;
+
 namespace Graber.Infrastructure.Hls;
 
 public class HlsPlaylistParser

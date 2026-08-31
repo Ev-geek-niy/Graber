@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Graber.Infrastructure.Hls.Models;
 
 namespace Graber.Infrastructure.Hls;
 

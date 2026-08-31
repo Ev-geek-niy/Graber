@@ -1,4 +1,5 @@
 using Graber.Infrastructure.Hls;
+using Graber.Infrastructure.Hls.Models;
 
 namespace Graber.UnitTests.Hls;
 

@@ -1,4 +1,4 @@
-namespace Graber.Infrastructure.Hls;
+namespace Graber.Infrastructure.Hls.Models;
 
 public class HlsVariant
 {
