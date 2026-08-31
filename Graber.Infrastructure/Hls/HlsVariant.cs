@@ -2,7 +2,7 @@ namespace Graber.Infrastructure.Hls;
 
 public class HlsVariant
 {
-    public required Uri VideoUrl
+    public Uri VideoUrl
     {
         get;
         init

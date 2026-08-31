@@ -2,7 +2,7 @@ using Graber.Application.Errors;
 using Graber.Application.Interfaces;
 using Graber.Application.Models;
 
-namespace Graber.UnitTests;
+namespace Graber.UnitTests.Stubs;
 
 public class StubHlsDownloader : IMediaDownloader
 {

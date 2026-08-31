@@ -2,6 +2,7 @@ using Graber.Application.Errors;
 using Graber.Application.Providers;
 using Graber.Application.UseCases;
 using Graber.Domain.Models;
+using Graber.UnitTests.Stubs;
 
 namespace Graber.UnitTests;
 

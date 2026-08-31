@@ -2,7 +2,7 @@ using Graber.Application.Interfaces;
 using Graber.Application.Models;
 using Graber.Domain.Models;
 
-namespace Graber.UnitTests;
+namespace Graber.UnitTests.Stubs;
 
 public class ThrowingExtractor(Exception exception) : IMetadataExtractor
 {

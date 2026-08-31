@@ -1,6 +1,6 @@
 using Graber.Infrastructure.Hls;
 
-namespace Graber.UnitTests;
+namespace Graber.UnitTests.Hls;
 
 public class HlsPlaylistParserTest
 {
